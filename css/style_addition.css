@@ -1,0 +1,10 @@
+
+/* ── Logo image in navbar / sidebar ─────────────────────── */
+.brand-logo-img {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid rgba(255,255,255,.25);
+  flex-shrink: 0;
+}
