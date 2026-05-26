@@ -1,6 +1,5 @@
 <?php
 session_start();
-// If logged in, redirect to appropriate dashboard
 if (isset($_SESSION['user_id'])) {
     header('Location: ' . ($_SESSION['role']==='admin' ? 'admin/dashboard.php' : 'customer/products.php'));
     exit;
@@ -11,247 +10,318 @@ if (isset($_SESSION['user_id'])) {
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Amazing World Marketing Corporation</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<title>Marguax Collections — Fashion Boutique</title>
+<link href="https://fonts.googleapis.com/css2?family=Didact+Gothic&family=Bodoni+Moda:ital,wght@0,400;0,600;0,700;0,900;1,400;1,700&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
-  --navy:#0b1f3a;--blue:#2563eb;--amber:#f59e0b;--green:#10b981;
-  --teal:#0d9488;--purple:#7c3aed;--red:#ef4444;
-  --text:#0f172a;--text-2:#475569;--text-3:#94a3b8;
-  --border:#e2e8f0;--bg:#f8fafc;
+  --noir:#0e0b0d;
+  --noir2:#1c1318;
+  --rose:#d4647a;
+  --dusty:#c9a0a8;
+  --blush:#f5dde2;
+  --cream:#faf5f0;
+  --gold:#c8a96a;
+  --gold2:#e8c87a;
+  --ivory:#fef9f4;
+  --text-dim:rgba(255,255,255,.5);
+  --text-mid:rgba(255,255,255,.75);
+  --border-d:rgba(196,160,168,.18);
 }
 html{scroll-behavior:smooth}
-body{font-family:'Plus Jakarta Sans',sans-serif;color:var(--text);background:#fff;overflow-x:hidden}
+body{font-family:'Jost',sans-serif;background:var(--ivory);color:var(--noir);overflow-x:hidden;cursor:none}
 a{text-decoration:none;color:inherit}
-img{max-width:100%}
+img{max-width:100%;display:block}
 
-/* ── NAVBAR ── */
-.nav{position:fixed;top:0;left:0;right:0;z-index:1000;transition:all .3s}
-.nav.scrolled{background:rgba(11,31,58,.97);backdrop-filter:blur(12px);box-shadow:0 2px 20px rgba(0,0,0,.3)}
-.nav-inner{max-width:1200px;margin:auto;padding:0 24px;height:72px;display:flex;align-items:center;justify-content:space-between}
-.nav-logo{display:flex;align-items:center;gap:10px}
-.nav-logo img{width:44px;height:44px;border-radius:50%;border:2px solid rgba(255,255,255,.3);object-fit:cover}
-.nav-brand{font-family:'Sora',sans-serif;font-weight:800;font-size:.9rem;color:#fff;line-height:1.1}
-.nav-sub{font-size:.6rem;color:var(--amber);font-weight:600;text-transform:uppercase;letter-spacing:.1em}
+/* ── CURSOR ── */
+#cur-dot{position:fixed;width:8px;height:8px;background:var(--rose);border-radius:50%;pointer-events:none;z-index:99999;transform:translate(-50%,-50%);transition:transform .08s}
+#cur-ring{position:fixed;width:38px;height:38px;border:1px solid rgba(212,100,122,.55);border-radius:50%;pointer-events:none;z-index:99998;transform:translate(-50%,-50%);transition:width .25s,height .25s,border-color .25s}
+body:hover #cur-dot{opacity:1}
+
+/* ── PETALS ── */
+.petals{position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden}
+.petal{position:absolute;border-radius:60% 30% 70% 20%/50% 40% 60% 50%;opacity:0;animation:fall linear infinite}
+@keyframes fall{0%{opacity:0;transform:translateY(-20px) rotate(0deg) scale(1)}8%{opacity:.55}88%{opacity:.25}100%{opacity:0;transform:translateY(105vh) rotate(400deg) scale(.7)}}
+
+/* ── NAV ── */
+.nav{position:fixed;top:0;left:0;right:0;z-index:1000;transition:all .4s}
+.nav.scrolled{background:rgba(14,11,13,.94);backdrop-filter:blur(20px);border-bottom:1px solid var(--border-d)}
+.nav-inner{max-width:1360px;margin:auto;padding:0 56px;height:76px;display:flex;align-items:center;justify-content:space-between}
+
+/* LOGO */
+.nav-logo{display:flex;align-items:center;gap:14px;flex-shrink:0}
+.logo-svg-wrap{flex-shrink:0}
+.logo-monogram{width:48px;height:48px}
+.logo-text-block{display:flex;flex-direction:column}
+.logo-name{font-family:'Bodoni Moda',serif;font-size:1.1rem;font-weight:700;color:#fff;letter-spacing:.08em;line-height:1.1}
+.logo-name em{font-style:italic;color:var(--rose)}
+.logo-tagline{font-size:.58rem;letter-spacing:.22em;color:var(--gold);text-transform:uppercase;margin-top:2px}
+
 .nav-links{display:flex;align-items:center;gap:6px}
-.nav-link{padding:8px 16px;border-radius:8px;color:rgba(255,255,255,.8);font-size:.875rem;font-weight:600;transition:all .2s}
-.nav-link:hover{background:rgba(255,255,255,.12);color:#fff}
-.nav-cta{padding:10px 22px;background:var(--amber);color:var(--navy)!important;border-radius:10px;font-weight:700;transition:all .2s!important}
-.nav-cta:hover{background:#d97706;transform:translateY(-1px);box-shadow:0 4px 12px rgba(245,158,11,.4)}
-.hamburger{display:none;flex-direction:column;gap:5px;cursor:pointer;padding:4px}
-.hamburger span{width:24px;height:2px;background:#fff;border-radius:2px;transition:.3s}
-@media(max-width:768px){
-  .nav-links{display:none;position:absolute;top:72px;left:0;right:0;background:rgba(11,31,58,.98);flex-direction:column;padding:20px;gap:4px}
+.nav-link{padding:8px 16px;color:rgba(255,255,255,.7);font-size:.78rem;font-weight:500;letter-spacing:.1em;text-transform:uppercase;transition:color .25s;position:relative}
+.nav-link::after{content:'';position:absolute;bottom:4px;left:50%;transform:translateX(-50%);width:0;height:1px;background:var(--rose);transition:width .3s}
+.nav-link:hover{color:#fff}
+.nav-link:hover::after{width:50%}
+.nav-cta{padding:10px 26px!important;background:linear-gradient(135deg,var(--rose),#b84060);color:#fff!important;border-radius:50px;letter-spacing:.12em!important;font-weight:600;box-shadow:0 4px 20px rgba(212,100,122,.4);transition:all .3s!important}
+.nav-cta::after{display:none!important}
+.nav-cta:hover{transform:translateY(-2px);box-shadow:0 8px 30px rgba(212,100,122,.55)!important}
+.hamburger{display:none;flex-direction:column;gap:5px;cursor:none;padding:4px}
+.hamburger span{width:22px;height:1px;background:rgba(255,255,255,.8);transition:.3s}
+@media(max-width:960px){
+  .nav-inner{padding:0 24px}
+  .nav-links{display:none;position:absolute;top:76px;left:0;right:0;background:rgba(14,11,13,.97);backdrop-filter:blur(20px);flex-direction:column;padding:28px 32px;gap:8px;border-bottom:1px solid var(--border-d)}
   .nav-links.open{display:flex}
   .hamburger{display:flex}
 }
 
 /* ── HERO ── */
-.hero{min-height:100vh;background:linear-gradient(135deg,#0b1f3a 0%,#112d52 40%,#1a4070 70%,#0d4a6e 100%);display:flex;align-items:center;position:relative;overflow:hidden;padding-top:72px}
-.hero::before{content:'';position:absolute;inset:0;background:url("data:image/svg+xml,%3Csvg width='80' height='80' viewBox='0 0 80 80' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.03'%3E%3Ccircle cx='40' cy='40' r='2'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")}
-.hero-glow{position:absolute;width:600px;height:600px;background:radial-gradient(circle,rgba(37,99,235,.15) 0%,transparent 70%);top:-100px;right:-100px;pointer-events:none}
-.hero-glow2{position:absolute;width:400px;height:400px;background:radial-gradient(circle,rgba(245,158,11,.1) 0%,transparent 70%);bottom:-50px;left:-50px;pointer-events:none}
-.hero-inner{max-width:1200px;margin:auto;padding:80px 24px;display:grid;grid-template-columns:1fr 1fr;gap:60px;align-items:center;position:relative;z-index:1}
-.hero-badge{display:inline-flex;align-items:center;gap:8px;background:rgba(245,158,11,.15);border:1px solid rgba(245,158,11,.3);color:var(--amber);padding:8px 16px;border-radius:30px;font-size:.8rem;font-weight:700;margin-bottom:24px;animation:fadeInUp .6s ease}
-.hero h1{font-family:'Sora',sans-serif;font-size:3.2rem;font-weight:800;color:#fff;line-height:1.15;margin-bottom:20px;animation:fadeInUp .6s .1s ease both}
-.hero h1 span{background:linear-gradient(135deg,#f59e0b,#f97316);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
-.hero-desc{color:rgba(255,255,255,.7);font-size:1.05rem;line-height:1.7;margin-bottom:36px;animation:fadeInUp .6s .2s ease both}
-.hero-btns{display:flex;gap:14px;flex-wrap:wrap;animation:fadeInUp .6s .3s ease both}
-.btn-hero-primary{padding:15px 32px;background:linear-gradient(135deg,#2563eb,#1d4ed8);color:#fff;border-radius:12px;font-weight:700;font-size:1rem;transition:all .3s;box-shadow:0 4px 20px rgba(37,99,235,.4)}
-.btn-hero-primary:hover{transform:translateY(-2px);box-shadow:0 8px 32px rgba(37,99,235,.5)}
-.btn-hero-outline{padding:15px 32px;border:2px solid rgba(255,255,255,.3);color:#fff;border-radius:12px;font-weight:700;font-size:1rem;transition:all .3s}
-.btn-hero-outline:hover{background:rgba(255,255,255,.1);border-color:rgba(255,255,255,.5);transform:translateY(-2px)}
-.hero-stats{display:flex;gap:32px;margin-top:40px;animation:fadeInUp .6s .4s ease both}
-.hero-stat-val{font-family:'Sora',sans-serif;font-size:1.8rem;font-weight:800;color:#fff}
-.hero-stat-lbl{font-size:.78rem;color:rgba(255,255,255,.5);margin-top:2px}
-.hero-right{position:relative;animation:fadeInRight .8s .2s ease both}
-.hero-card-main{background:rgba(255,255,255,.08);backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,.12);border-radius:20px;padding:0;margin-bottom:16px;overflow:hidden;}
-.hero-card-main img{width:100%;height:100%;border-radius:12px;object-fit:cover;object-position:center;transition:transform .4s;display:block;}
-.hero-card-mini{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-.mini-card{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:14px;padding:16px;text-align:center;transition:all .3s}
-.mini-card:hover{background:rgba(255,255,255,.12);transform:translateY(-3px)}
-.mini-card .icon{font-size:1.8rem;margin-bottom:8px}
-.mini-card .label{font-size:.78rem;color:rgba(255,255,255,.6);font-weight:600}
-.mini-card .val{font-size:1.1rem;font-weight:800;color:#fff}
-@media(max-width:768px){
-  .hero-inner{grid-template-columns:1fr}
-  .hero h1{font-size:2.2rem}
-  .hero-right{display:none}
-  .hero-stats{gap:20px}
-}
+.hero{min-height:100vh;background:linear-gradient(150deg,#0e0b0d 0%,#1c1318 45%,#261520 80%,#0e0b0d 100%);display:flex;align-items:center;position:relative;overflow:hidden;padding-top:76px}
+.hero-grain{position:absolute;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='4'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.035'/%3E%3C/svg%3E");pointer-events:none}
+.hero-blob{position:absolute;border-radius:50%;pointer-events:none;animation:breathe 8s ease-in-out infinite}
+.hb1{width:700px;height:700px;background:radial-gradient(circle,rgba(212,100,122,.1) 0%,transparent 70%);top:-180px;right:-180px}
+.hb2{width:480px;height:480px;background:radial-gradient(circle,rgba(200,169,106,.07) 0%,transparent 70%);bottom:-120px;left:-120px;animation-delay:3s}
+.hb3{width:280px;height:280px;background:radial-gradient(circle,rgba(212,100,122,.08) 0%,transparent 70%);top:50%;left:42%;transform:translate(-50%,-50%);animation-delay:1.5s}
+@keyframes breathe{0%,100%{transform:scale(1)}50%{transform:scale(1.14)}}
 
-/* ── SECTIONS COMMON ── */
-.section{padding:80px 0}
-.section-inner{max-width:1200px;margin:auto;padding:0 24px}
-.section-badge{display:inline-block;background:rgba(37,99,235,.1);color:var(--blue);padding:6px 16px;border-radius:20px;font-size:.78rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;margin-bottom:16px}
-.section-title{font-family:'Sora',sans-serif;font-size:2.2rem;font-weight:800;color:var(--navy);margin-bottom:12px}
-.section-sub{font-size:1rem;color:var(--text-2);max-width:560px;line-height:1.7}
-.text-center{text-align:center}
-.text-center .section-sub{margin:0 auto}
+.hero-inner{max-width:1360px;margin:auto;padding:90px 56px;display:grid;grid-template-columns:1fr 1fr;gap:80px;align-items:center;position:relative;z-index:1}
+@media(max-width:960px){.hero-inner{grid-template-columns:1fr;padding:60px 24px;gap:48px}}
 
-/* ── PRODUCTS SECTION ── */
-.products-bg{background:var(--bg)}
-.products-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:20px;margin-top:48px}
-.product-card{background:#fff;border-radius:18px;overflow:hidden;box-shadow:0 4px 16px rgba(0,0,0,.08);transition:all .3s;cursor:pointer;border:1px solid var(--border)}
-.product-card:hover{transform:translateY(-6px);box-shadow:0 16px 40px rgba(0,0,0,.15);border-color:var(--blue)}
-.product-card img{width:100%;height:200px;object-fit:cover;transition:transform .4s}
-.product-card:hover img{transform:scale(1.05)}
-.product-card-body{padding:20px}
-.product-tag{display:inline-block;background:rgba(37,99,235,.1);color:var(--blue);font-size:.7rem;font-weight:700;padding:3px 10px;border-radius:20px;margin-bottom:8px}
-.product-card-body h3{font-family:'Sora',sans-serif;font-size:1rem;font-weight:700;color:var(--navy);margin-bottom:6px}
-.product-card-body p{font-size:.82rem;color:var(--text-2);line-height:1.6;margin-bottom:12px}
-.product-price{font-family:'Sora',sans-serif;font-size:1.2rem;font-weight:800;color:var(--blue)}
+/* Hero left */
+.hero-badge{display:inline-flex;align-items:center;gap:8px;background:rgba(212,100,122,.12);border:1px solid rgba(212,100,122,.3);color:rgba(212,100,122,.9);padding:8px 20px;border-radius:50px;font-size:.7rem;font-weight:600;letter-spacing:.18em;text-transform:uppercase;margin-bottom:30px;animation:fadeUp .7s ease both}
+.hero-badge::before{content:'✦'}
+.hero h1{font-family:'Bodoni Moda',serif;font-size:clamp(3rem,5.2vw,5.5rem);font-weight:900;color:#fff;line-height:1.05;margin-bottom:24px;animation:fadeUp .7s .1s ease both}
+.hero h1 .line-script{display:block;font-style:italic;background:linear-gradient(135deg,var(--gold2),var(--gold),var(--rose));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.hero-desc{font-family:'Jost',sans-serif;color:rgba(255,255,255,.6);font-size:1rem;line-height:1.85;margin-bottom:40px;max-width:480px;font-weight:300;animation:fadeUp .7s .2s ease both}
+.hero-btns{display:flex;gap:14px;flex-wrap:wrap;animation:fadeUp .7s .3s ease both}
+.btn-hero-rose{display:inline-flex;align-items:center;gap:10px;padding:16px 36px;background:linear-gradient(135deg,var(--rose),#b84060);color:#fff;border-radius:50px;font-size:.82rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;box-shadow:0 6px 28px rgba(212,100,122,.4);transition:all .35s;position:relative;overflow:hidden}
+.btn-hero-rose::before{content:'';position:absolute;top:0;left:-100%;width:100%;height:100%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.15),transparent);transition:left .5s}
+.btn-hero-rose:hover::before{left:100%}
+.btn-hero-rose:hover{transform:translateY(-3px);box-shadow:0 12px 36px rgba(212,100,122,.55)}
+.btn-hero-ghost{display:inline-flex;align-items:center;gap:10px;padding:16px 34px;border:1px solid rgba(255,255,255,.22);color:rgba(255,255,255,.8);border-radius:50px;font-size:.82rem;font-weight:500;letter-spacing:.1em;text-transform:uppercase;transition:all .35s}
+.btn-hero-ghost:hover{background:rgba(255,255,255,.07);border-color:rgba(255,255,255,.45);transform:translateY(-3px)}
+.hero-stats{display:flex;gap:40px;margin-top:46px;animation:fadeUp .7s .42s ease both}
+.stat-val{font-family:'Bodoni Moda',serif;font-size:2.1rem;font-weight:700;background:linear-gradient(135deg,var(--gold2),var(--rose));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.stat-lbl{font-size:.68rem;color:rgba(255,255,255,.4);letter-spacing:.14em;text-transform:uppercase;margin-top:2px}
 
-/* ── HOW TO JOIN ── */
-.how-bg{background:linear-gradient(135deg,#0b1f3a,#112d52)}
-.steps-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:32px;margin-top:48px;position:relative}
-.steps-grid::before{content:'';position:absolute;top:36px;left:calc(16.66% + 20px);right:calc(16.66% + 20px);height:2px;background:linear-gradient(90deg,rgba(245,158,11,.3),rgba(245,158,11,.8),rgba(245,158,11,.3));z-index:0}
-.step{text-align:center;position:relative;z-index:1}
-.step-num{width:72px;height:72px;border-radius:50%;background:linear-gradient(135deg,var(--amber),#f97316);color:var(--navy);font-family:'Sora',sans-serif;font-size:1.5rem;font-weight:800;display:flex;align-items:center;justify-content:center;margin:0 auto 20px;box-shadow:0 8px 24px rgba(245,158,11,.4);transition:all .3s}
-.step:hover .step-num{transform:scale(1.1);box-shadow:0 12px 32px rgba(245,158,11,.6)}
-.step-img{width:100%;height:160px;object-fit:cover;border-radius:14px;margin-bottom:16px;border:2px solid rgba(255,255,255,.1)}
-.step h3{font-family:'Sora',sans-serif;font-weight:700;color:#fff;font-size:1.1rem;margin-bottom:8px}
-.step p{color:rgba(255,255,255,.6);font-size:.875rem;line-height:1.6}
-@media(max-width:768px){.steps-grid{grid-template-columns:1fr}.steps-grid::before{display:none}}
+/* Hero right — category cards */
+.hero-right{animation:fadeInR .9s .2s ease both}
+@keyframes fadeInR{from{opacity:0;transform:translateX(40px)}to{opacity:1;transform:translateX(0)}}
+.hero-cards-top{background:rgba(255,255,255,.05);border:1px solid rgba(212,100,122,.18);border-radius:24px;overflow:hidden;margin-bottom:14px;position:relative}
+.hero-cards-top img{width:100%;height:290px;object-fit:cover;transition:transform .5s}
+.hero-cards-top:hover img{transform:scale(1.04)}
+.hero-img-overlay{position:absolute;inset:0;background:linear-gradient(180deg,transparent 50%,rgba(14,11,13,.8));display:flex;align-items:flex-end;padding:22px}
+.hero-img-label{font-family:'Bodoni Moda',serif;font-size:1rem;font-weight:700;color:#fff;font-style:italic}
+.hero-img-sub{font-size:.72rem;color:rgba(255,255,255,.6);letter-spacing:.08em;margin-top:3px}
+.hero-mini-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.mini-cat{background:rgba(255,255,255,.05);border:1px solid rgba(212,100,122,.14);border-radius:18px;padding:20px 16px;text-align:center;transition:all .38s;cursor:none}
+.mini-cat:hover{background:rgba(212,100,122,.14);border-color:rgba(212,100,122,.4);transform:translateY(-5px)}
+.mini-cat-icon{font-size:2rem;margin-bottom:10px;display:block;animation:floatIcon 4.5s ease-in-out infinite}
+.mini-cat:nth-child(2) .mini-cat-icon{animation-delay:1s}
+.mini-cat:nth-child(3) .mini-cat-icon{animation-delay:2s}
+.mini-cat:nth-child(4) .mini-cat-icon{animation-delay:3s}
+@keyframes floatIcon{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+.mini-cat-label{font-size:.8rem;color:rgba(255,255,255,.82);font-weight:500;letter-spacing:.05em}
+.mini-cat-sub{font-size:.68rem;color:rgba(255,255,255,.38);margin-top:3px}
+@keyframes fadeUp{from{opacity:0;transform:translateY(26px)}to{opacity:1;transform:translateY(0)}}
 
-/* ── PACKAGES ── */
-.packages-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:24px;margin-top:48px}
-.pkg-card{border-radius:20px;overflow:hidden;box-shadow:0 8px 32px rgba(0,0,0,.12);transition:all .3s;position:relative}
-.pkg-card:hover{transform:translateY(-6px);box-shadow:0 20px 60px rgba(0,0,0,.2)}
-.pkg-card.featured{transform:scale(1.03)}
-.pkg-card.featured:hover{transform:scale(1.03) translateY(-6px)}
-.pkg-ribbon{position:absolute;top:20px;right:-30px;background:var(--amber);color:var(--navy);font-size:.65rem;font-weight:800;padding:5px 44px;transform:rotate(45deg);z-index:2;letter-spacing:.08em}
-.pkg-top{padding:32px 28px;color:#fff;position:relative;overflow:hidden}
-.pkg-top::before{content:'';position:absolute;top:-40px;right:-40px;width:120px;height:120px;border-radius:50%;background:rgba(255,255,255,.05)}
-.pkg-silver .pkg-top{background:linear-gradient(135deg,#374151,#6b7280)}
-.pkg-gold .pkg-top{background:linear-gradient(135deg,#92400e,#d97706)}
-.pkg-ruby .pkg-top{background:linear-gradient(135deg,#7f1d1d,#dc2626)}
-.pkg-emerald .pkg-top{background:linear-gradient(135deg,#064e3b,#059669)}
-.pkg-diamond .pkg-top{background:linear-gradient(135deg,#1e3a5f,#0ea5e9)}
-.pkg-icon{font-size:2.5rem;margin-bottom:12px}
-.pkg-name{font-family:'Sora',sans-serif;font-size:1.4rem;font-weight:800;margin-bottom:4px}
-.pkg-price{font-size:2rem;font-weight:800;line-height:1}
-.pkg-price small{font-size:.9rem;font-weight:400;opacity:.7}
-.pkg-body{background:#fff;padding:24px 28px}
-.pkg-item{display:flex;align-items:flex-start;gap:10px;padding:7px 0;font-size:.875rem;color:var(--text-2);border-bottom:1px solid var(--border)}
-.pkg-item:last-of-type{border-bottom:none}
-.pkg-item .ck{color:var(--green);font-weight:700;flex-shrink:0;margin-top:1px}
-.pkg-roi{background:linear-gradient(135deg,rgba(16,185,129,.1),rgba(37,99,235,.1));border:1px solid rgba(16,185,129,.3);border-radius:10px;padding:12px 16px;margin:16px 0;font-weight:700;color:var(--green);font-size:.9rem}
-.pkg-btn{display:block;text-align:center;padding:13px;border-radius:10px;font-weight:700;font-size:.95rem;margin-top:4px;transition:all .3s}
-.pkg-silver .pkg-btn{background:linear-gradient(135deg,#374151,#6b7280);color:#fff}
-.pkg-gold .pkg-btn{background:linear-gradient(135deg,#92400e,#d97706);color:#fff}
-.pkg-ruby .pkg-btn{background:linear-gradient(135deg,#7f1d1d,#dc2626);color:#fff}
-.pkg-emerald .pkg-btn{background:linear-gradient(135deg,#064e3b,#059669);color:#fff}
-.pkg-diamond .pkg-btn{background:linear-gradient(135deg,#1e3a5f,#0ea5e9);color:#fff}
-.pkg-btn:hover{opacity:.9;transform:translateY(-2px);box-shadow:0 6px 20px rgba(0,0,0,.2)}
+/* ── RIBBON ── */
+.ribbon{background:linear-gradient(135deg,var(--rose),#b84060,var(--rose));padding:13px 0;overflow:hidden;position:relative;z-index:1}
+.ribbon-track{display:flex;white-space:nowrap;animation:ribbonScroll 26s linear infinite}
+.ribbon-item{display:inline-flex;align-items:center;gap:22px;color:rgba(255,255,255,.85);font-size:.68rem;letter-spacing:.22em;text-transform:uppercase;font-weight:500;padding-right:52px}
+.ribbon-sep{color:rgba(255,255,255,.3)}
+@keyframes ribbonScroll{from{transform:translateX(0)}to{transform:translateX(-50%)}}
 
-/* ── MEMBERSHIP INFO ── */
-.membership-bg{background:var(--bg)}
-.membership-grid{display:grid;grid-template-columns:1fr 1fr;gap:60px;align-items:center;margin-top:48px}
-.membership-img{border-radius:20px;overflow:hidden;box-shadow:0 16px 48px rgba(0,0,0,.15)}
-.membership-img img{width:100%;height:400px;object-fit:cover;display:block;transition:transform .4s}
-.membership-img:hover img{transform:scale(1.03)}
-.membership-features{display:flex;flex-direction:column;gap:20px}
-.mf-item{display:flex;gap:16px;align-items:flex-start;padding:20px;background:#fff;border-radius:14px;border:1px solid var(--border);transition:all .3s}
-.mf-item:hover{border-color:var(--blue);box-shadow:0 4px 20px rgba(37,99,235,.1);transform:translateX(6px)}
-.mf-icon{width:48px;height:48px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.4rem;flex-shrink:0}
-.mf-icon.blue{background:rgba(37,99,235,.1)}
-.mf-icon.amber{background:rgba(245,158,11,.1)}
-.mf-icon.green{background:rgba(16,185,129,.1)}
-.mf-icon.purple{background:rgba(124,58,237,.1)}
-.mf-text h4{font-family:'Sora',sans-serif;font-weight:700;color:var(--navy);margin-bottom:4px}
-.mf-text p{font-size:.875rem;color:var(--text-2);line-height:1.6}
-@media(max-width:768px){.membership-grid{grid-template-columns:1fr}}
+/* ── SECTION COMMON ── */
+.sec{padding:96px 0}
+.sec-inner{max-width:1360px;margin:auto;padding:0 56px}
+@media(max-width:768px){.sec-inner{padding:0 24px}.sec{padding:64px 0}}
+.eyebrow{font-size:.68rem;letter-spacing:.24em;text-transform:uppercase;color:var(--rose);font-weight:600;margin-bottom:12px}
+.eyebrow::before{content:'✦  '}
+.sec-title{font-family:'Bodoni Moda',serif;font-size:clamp(2rem,3.2vw,3rem);font-weight:900;line-height:1.18;margin-bottom:12px}
+.sec-title em{font-style:italic;color:var(--rose)}
+.sec-sub{font-size:.95rem;color:#7a5a62;line-height:1.8;max-width:520px;font-weight:300}
+.t-center{text-align:center}.t-center .sec-sub{margin:0 auto}
+.reveal{opacity:0;transform:translateY(32px);transition:opacity .8s ease,transform .8s ease}
+.reveal.visible{opacity:1;transform:translateY(0)}
 
-/* ── ADS / PROMOS ── */
-.ads-bg{background:linear-gradient(135deg,#0b1f3a,#1a4070)}
-.ads-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;margin-top:40px}
-.ad-card{border-radius:16px;overflow:hidden;position:relative;cursor:pointer;transition:all .3s}
-.ad-card:hover{transform:translateY(-4px);box-shadow:0 16px 48px rgba(0,0,0,.4)}
-.ad-card img{width:100%;height:200px;object-fit:cover;display:block;transition:transform .4s}
-.ad-card:hover img{transform:scale(1.06)}
-.ad-overlay{position:absolute;inset:0;background:linear-gradient(180deg,transparent 40%,rgba(0,0,0,.85));display:flex;align-items:flex-end;padding:20px}
-.ad-label{font-family:'Sora',sans-serif;font-weight:700;color:#fff;font-size:.95rem}
-.ad-sub{font-size:.78rem;color:rgba(255,255,255,.7);margin-top:2px}
-.ad-featured{grid-column:span 2}
-.ad-featured img{height:300px}
-.ad-badge{position:absolute;top:14px;left:14px;background:var(--amber);color:var(--navy);font-size:.7rem;font-weight:800;padding:4px 12px;border-radius:20px}
-@media(max-width:768px){.ads-grid{grid-template-columns:1fr}.ad-featured{grid-column:span 1}}
+/* ── SHOP CATEGORIES (main) ── */
+.shop-cats{background:var(--cream)}
+.cats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:18px;margin-top:52px}
+@media(max-width:900px){.cats-grid{grid-template-columns:1fr 1fr}}
+.cat-card{border-radius:22px;overflow:hidden;position:relative;cursor:none;aspect-ratio:3/4;transition:all .42s cubic-bezier(.23,1,.32,1)}
+.cat-card img{width:100%;height:100%;object-fit:cover;transition:transform .6s}
+.cat-card:hover{transform:translateY(-8px);box-shadow:0 24px 60px rgba(212,100,122,.2)}
+.cat-card:hover img{transform:scale(1.07)}
+.cat-overlay{position:absolute;inset:0;background:linear-gradient(180deg,rgba(14,11,13,0) 35%,rgba(14,11,13,.85));display:flex;flex-direction:column;justify-content:flex-end;padding:24px 20px}
+.cat-pill{display:inline-block;background:rgba(212,100,122,.9);color:#fff;font-size:.62rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;padding:4px 12px;border-radius:20px;margin-bottom:8px;width:fit-content}
+.cat-name{font-family:'Bodoni Moda',serif;font-size:1.25rem;font-weight:700;color:#fff;font-style:italic}
+.cat-count{font-size:.74rem;color:rgba(255,255,255,.55);margin-top:4px;letter-spacing:.06em}
+.cat-arrow{position:absolute;top:18px;right:18px;width:36px;height:36px;background:rgba(255,255,255,.12);backdrop-filter:blur(8px);border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-size:.9rem;opacity:0;transform:translateY(-6px);transition:all .35s}
+.cat-card:hover .cat-arrow{opacity:1;transform:translateY(0)}
 
-/* ── PAYMENT METHODS ── */
-.payment-grid{display:flex;gap:20px;flex-wrap:wrap;justify-content:center;margin-top:40px}
-.pay-card{background:#fff;border-radius:16px;padding:24px 32px;display:flex;align-items:center;gap:14px;border:2px solid var(--border);transition:all .3s;box-shadow:0 2px 8px rgba(0,0,0,.06)}
-.pay-card:hover{border-color:var(--blue);transform:translateY(-3px);box-shadow:0 8px 24px rgba(37,99,235,.15)}
-.pay-icon{font-size:2rem}
-.pay-name{font-weight:700;color:var(--navy)}
-.pay-desc{font-size:.8rem;color:var(--text-3)}
+/* ── BRAND NEW SECTION ── */
+.brandnew-bg{background:#fff}
+.products-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(270px,1fr));gap:22px;margin-top:52px}
+.prod-card{border-radius:20px;overflow:hidden;border:1px solid rgba(212,100,122,.1);background:#fff;transition:all .42s cubic-bezier(.23,1,.32,1);cursor:none;position:relative}
+.prod-card:hover{transform:translateY(-8px);box-shadow:0 20px 52px rgba(212,100,122,.14);border-color:rgba(212,100,122,.35)}
+.prod-img-wrap{position:relative;overflow:hidden}
+.prod-card img{width:100%;height:300px;object-fit:cover;transition:transform .55s}
+.prod-card:hover img{transform:scale(1.06)}
+.prod-badge{position:absolute;top:14px;left:14px;padding:5px 14px;border-radius:20px;font-size:.65rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase}
+.badge-new{background:linear-gradient(135deg,var(--rose),#b84060);color:#fff}
+.badge-preowned{background:linear-gradient(135deg,var(--gold),#a07830);color:#fff}
+.badge-sale{background:linear-gradient(135deg,#e8547a,#c2185b);color:#fff}
+.prod-wish{position:absolute;top:14px;right:14px;width:36px;height:36px;background:rgba(255,255,255,.9);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.95rem;opacity:0;transform:scale(.8);transition:all .3s}
+.prod-card:hover .prod-wish{opacity:1;transform:scale(1)}
+.prod-body{padding:20px 18px}
+.prod-tag{font-size:.65rem;letter-spacing:.12em;text-transform:uppercase;color:var(--rose);font-weight:600;margin-bottom:6px}
+.prod-name{font-family:'Bodoni Moda',serif;font-size:1.05rem;font-weight:700;color:var(--noir);margin-bottom:6px;font-style:italic}
+.prod-desc{font-size:.8rem;color:#7a5a62;line-height:1.65;margin-bottom:14px}
+.prod-foot{display:flex;align-items:center;justify-content:space-between}
+.prod-price{font-family:'Bodoni Moda',serif;font-size:1.2rem;font-weight:700;color:var(--rose)}
+.prod-price .was{font-size:.78rem;color:#bbb;text-decoration:line-through;font-family:'Jost',sans-serif;font-weight:400;margin-left:6px}
+.prod-btn{padding:8px 18px;background:linear-gradient(135deg,var(--rose),#b84060);color:#fff;border-radius:50px;font-size:.72rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;transition:all .3s}
+.prod-btn:hover{transform:translateY(-2px);box-shadow:0 6px 18px rgba(212,100,122,.4)}
 
-/* ── TESTIMONIALS ── */
-.testi-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;margin-top:48px}
-.testi-card{background:#fff;border-radius:16px;padding:28px;border:1px solid var(--border);transition:all .3s;position:relative}
-.testi-card:hover{border-color:var(--blue);box-shadow:0 8px 32px rgba(37,99,235,.1);transform:translateY(-4px)}
-.testi-card::before{content:'"';position:absolute;top:16px;right:20px;font-size:4rem;color:var(--border);font-family:'Sora',sans-serif;line-height:1}
-.testi-stars{color:var(--amber);font-size:1rem;margin-bottom:12px}
-.testi-text{font-size:.9rem;color:var(--text-2);line-height:1.7;margin-bottom:16px;font-style:italic}
-.testi-author{display:flex;align-items:center;gap:10px}
-.testi-avatar{width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,var(--blue),var(--purple));display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:.9rem}
-.testi-name{font-weight:700;font-size:.875rem;color:var(--navy)}
-.testi-role{font-size:.75rem;color:var(--text-3)}
-@media(max-width:768px){.testi-grid{grid-template-columns:1fr}}
+/* ── PRE-OWNED FEATURE ── */
+.preowned-bg{background:linear-gradient(150deg,var(--noir) 0%,var(--noir2) 50%,#261520 100%);position:relative;overflow:hidden}
+.preowned-bg::before{content:'PREOWNED';position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-family:'Bodoni Moda',serif;font-size:12rem;font-weight:900;color:rgba(255,255,255,.02);white-space:nowrap;pointer-events:none;letter-spacing:.1em}
+.preowned-inner{display:grid;grid-template-columns:1fr 1fr;gap:72px;align-items:center}
+@media(max-width:900px){.preowned-inner{grid-template-columns:1fr}}
+.preowned-imgs{display:grid;grid-template-columns:1fr 1fr;gap:14px;position:relative}
+.po-img-main{grid-column:1/-1;border-radius:22px;overflow:hidden;border:1px solid rgba(212,100,122,.2)}
+.po-img-main img{width:100%;height:280px;object-fit:cover;transition:transform .5s}
+.po-img-main:hover img{transform:scale(1.04)}
+.po-img-sm{border-radius:18px;overflow:hidden;border:1px solid rgba(212,100,122,.15)}
+.po-img-sm img{width:100%;height:180px;object-fit:cover;transition:transform .5s}
+.po-img-sm:hover img{transform:scale(1.06)}
+.po-float-tag{position:absolute;top:-16px;right:-16px;background:linear-gradient(135deg,var(--gold),#a07830);color:#fff;padding:10px 20px;border-radius:50px;font-size:.72rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;box-shadow:0 6px 20px rgba(200,169,106,.4);z-index:2}
+.preowned-content .eyebrow{color:var(--gold)}
+.preowned-content .sec-title{color:#fff}
+.preowned-content .sec-sub{color:rgba(255,255,255,.55)}
+.po-perks{display:flex;flex-direction:column;gap:16px;margin-top:32px}
+.po-perk{display:flex;align-items:center;gap:16px;padding:18px 20px;background:rgba(255,255,255,.04);border:1px solid rgba(212,100,122,.12);border-radius:14px;transition:all .35s}
+.po-perk:hover{background:rgba(212,100,122,.1);border-color:rgba(212,100,122,.3);transform:translateX(6px)}
+.po-perk-icon{width:44px;height:44px;background:linear-gradient(135deg,rgba(212,100,122,.2),rgba(200,169,106,.1));border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.3rem;flex-shrink:0}
+.po-perk-title{font-family:'Bodoni Moda',serif;font-weight:700;color:#fff;font-size:.95rem;margin-bottom:3px}
+.po-perk-desc{font-size:.78rem;color:rgba(255,255,255,.45);line-height:1.6}
+.po-btns{display:flex;gap:14px;margin-top:36px;flex-wrap:wrap}
+
+/* ── HOW TO ORDER ── */
+.howorder-bg{background:var(--cream)}
+.steps-row{display:grid;grid-template-columns:repeat(4,1fr);gap:28px;margin-top:52px;position:relative}
+.steps-row::before{content:'';position:absolute;top:44px;left:calc(12.5% + 14px);right:calc(12.5% + 14px);height:1px;background:linear-gradient(90deg,transparent,rgba(212,100,122,.3) 20%,rgba(212,100,122,.7) 50%,rgba(212,100,122,.3) 80%,transparent)}
+@media(max-width:900px){.steps-row{grid-template-columns:1fr 1fr}.steps-row::before{display:none}}
+.step-card{text-align:center;position:relative;z-index:1}
+.step-num{width:80px;height:80px;border-radius:50%;background:linear-gradient(135deg,var(--rose),#b84060);color:#fff;font-family:'Bodoni Moda',serif;font-size:1.7rem;font-weight:900;display:flex;align-items:center;justify-content:center;margin:0 auto 20px;box-shadow:0 8px 28px rgba(212,100,122,.4);transition:all .35s}
+.step-card:hover .step-num{transform:scale(1.12);box-shadow:0 14px 40px rgba(212,100,122,.6)}
+.step-icon{font-size:1.6rem;margin-bottom:12px;display:block}
+.step-title{font-family:'Bodoni Moda',serif;font-weight:700;font-size:1rem;color:var(--noir);margin-bottom:8px;font-style:italic}
+.step-desc{font-size:.8rem;color:#7a5a62;line-height:1.7}
+
+
+/* ── PAYMENT ── */
+.pay-grid{display:flex;gap:16px;flex-wrap:wrap;justify-content:center;margin-top:44px}
+.pay-card{background:#fff;border-radius:16px;padding:20px 28px;display:flex;align-items:center;gap:14px;border:1px solid rgba(212,100,122,.15);transition:all .35s;box-shadow:0 2px 10px rgba(0,0,0,.04)}
+.pay-card:hover{border-color:rgba(212,100,122,.45);transform:translateY(-4px);box-shadow:0 10px 28px rgba(212,100,122,.12)}
+.pay-icon{font-size:1.9rem}
+.pay-name{font-weight:600;color:var(--noir);font-size:.88rem}
+.pay-desc{font-size:.74rem;color:#b07a8a}
 
 /* ── CTA BANNER ── */
-.cta-section{background:linear-gradient(135deg,#0b1f3a,#2563eb);padding:80px 24px;text-align:center}
-.cta-section h2{font-family:'Sora',sans-serif;font-size:2.5rem;font-weight:800;color:#fff;margin-bottom:16px}
-.cta-section p{color:rgba(255,255,255,.75);font-size:1.05rem;margin-bottom:36px;max-width:560px;margin-left:auto;margin-right:auto}
+.cta-section{background:linear-gradient(150deg,var(--noir) 0%,#261520 40%,var(--rose) 100%);padding:96px 56px;text-align:center;position:relative;overflow:hidden}
+.cta-section::before{content:'M';position:absolute;top:-60px;left:40px;font-family:'Bodoni Moda',serif;font-size:24rem;font-weight:900;color:rgba(255,255,255,.02);line-height:1;pointer-events:none}
+.cta-section h2{font-family:'Bodoni Moda',serif;font-size:clamp(2.2rem,4vw,3.4rem);font-weight:900;color:#fff;margin-bottom:16px}
+.cta-section h2 em{font-style:italic;color:rgba(255,255,255,.65)}
+.cta-section p{color:rgba(255,255,255,.65);font-size:1rem;margin-bottom:40px;max-width:520px;margin-left:auto;margin-right:auto;line-height:1.8;font-weight:300}
 .cta-btns{display:flex;gap:14px;justify-content:center;flex-wrap:wrap}
-.btn-cta-white{padding:15px 36px;background:#fff;color:var(--navy);border-radius:12px;font-weight:800;font-size:1rem;transition:all .3s}
-.btn-cta-white:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(255,255,255,.2)}
-.btn-cta-outline{padding:15px 36px;border:2px solid rgba(255,255,255,.4);color:#fff;border-radius:12px;font-weight:700;font-size:1rem;transition:all .3s}
-.btn-cta-outline:hover{background:rgba(255,255,255,.1);transform:translateY(-2px)}
+.btn-cta-w{padding:16px 38px;background:#fff;color:var(--rose);border-radius:50px;font-weight:700;font-size:.88rem;letter-spacing:.1em;text-transform:uppercase;transition:all .3s;box-shadow:0 6px 24px rgba(255,255,255,.15)}
+.btn-cta-w:hover{transform:translateY(-3px);box-shadow:0 12px 36px rgba(255,255,255,.25)}
+.btn-cta-ghost{padding:16px 36px;border:1px solid rgba(255,255,255,.3);color:#fff;border-radius:50px;font-size:.88rem;font-weight:500;letter-spacing:.1em;text-transform:uppercase;transition:all .3s}
+.btn-cta-ghost:hover{background:rgba(255,255,255,.1);border-color:rgba(255,255,255,.6);transform:translateY(-3px)}
 
 /* ── FOOTER ── */
-footer{background:#060f1c;color:rgba(255,255,255,.6);padding:60px 24px 32px}
-.footer-inner{max-width:1200px;margin:auto}
-.footer-grid{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:40px;margin-bottom:48px}
-.footer-brand img{width:52px;height:52px;border-radius:50%;border:2px solid rgba(255,255,255,.2);object-fit:cover;margin-bottom:14px}
-.footer-brand p{font-size:.875rem;line-height:1.7;max-width:280px}
-.footer-col h4{font-family:'Sora',sans-serif;font-weight:700;color:#fff;margin-bottom:16px;font-size:.9rem}
-.footer-col a{display:block;font-size:.85rem;margin-bottom:10px;color:rgba(255,255,255,.5);transition:.2s}
-.footer-col a:hover{color:#fff}
-.footer-bottom{border-top:1px solid rgba(255,255,255,.08);padding-top:24px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;font-size:.8rem}
-.social-links{display:flex;gap:10px}
-.social-link{width:36px;height:36px;border-radius:8px;background:rgba(255,255,255,.08);display:flex;align-items:center;justify-content:center;font-size:1rem;transition:.2s}
-.social-link:hover{background:rgba(255,255,255,.16)}
-@media(max-width:768px){.footer-grid{grid-template-columns:1fr 1fr}.footer-brand{grid-column:span 2}}
+footer{background:#080507;color:rgba(255,255,255,.5);padding:68px 56px 36px}
+.footer-inner{max-width:1360px;margin:auto}
+.footer-grid{display:grid;grid-template-columns:2.2fr 1fr 1fr 1fr;gap:48px;margin-bottom:56px}
+@media(max-width:768px){.footer-grid{grid-template-columns:1fr 1fr}.footer-brand-col{grid-column:span 2}footer{padding:48px 24px 28px}}
+.footer-logo-row{display:flex;align-items:center;gap:12px;margin-bottom:16px}
+.footer-brand-name{font-family:'Bodoni Moda',serif;font-size:1.15rem;font-weight:900;color:#fff;line-height:1.1}
+.footer-brand-name em{font-style:italic;color:var(--rose)}
+.footer-tagline{font-size:.58rem;color:var(--gold);letter-spacing:.18em;text-transform:uppercase;margin-top:2px}
+.footer-brand-col p{font-size:.83rem;line-height:1.8;max-width:280px}
+.footer-col h4{font-family:'Bodoni Moda',serif;font-weight:700;color:#fff;margin-bottom:18px;font-size:.9rem;font-style:italic;letter-spacing:.04em}
+.footer-col a{display:block;font-size:.82rem;margin-bottom:11px;color:rgba(255,255,255,.42);transition:.25s}
+.footer-col a:hover{color:var(--rose)}
+.footer-bottom{border-top:1px solid rgba(212,100,122,.1);padding-top:26px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:14px;font-size:.76rem}
+.social-links{display:flex;gap:10px;margin-top:18px}
+.social-link{width:36px;height:36px;border-radius:10px;background:rgba(212,100,122,.1);border:1px solid rgba(212,100,122,.18);display:flex;align-items:center;justify-content:center;font-size:.95rem;transition:.25s}
+.social-link:hover{background:rgba(212,100,122,.25);border-color:rgba(212,100,122,.5)}
 
-/* ── ANIMATIONS ── */
-@keyframes fadeInUp{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:translateY(0)}}
-@keyframes fadeInRight{from{opacity:0;transform:translateX(40px)}to{opacity:1;transform:translateX(0)}}
-.reveal{opacity:0;transform:translateY(30px);transition:all .7s ease}
-.reveal.visible{opacity:1;transform:translateY(0)}
+/* ── PAGE TRANSITION ── */
+.page-transition{position:fixed;inset:0;z-index:99999;pointer-events:none;display:flex;align-items:center;justify-content:center}
+.pt-panel{position:absolute;inset:0;background:linear-gradient(135deg,var(--noir),var(--rose));transform:scaleY(0);transform-origin:bottom;transition:transform .55s cubic-bezier(.77,0,.18,1)}
+.pt-logo{position:relative;z-index:2;opacity:0;transform:scale(.5);transition:all .4s ease .25s;text-align:center}
+.pt-icon{font-size:2.8rem;display:block;margin-bottom:8px}
+.pt-text{font-family:'Bodoni Moda',serif;font-weight:900;font-size:.95rem;color:#fff;letter-spacing:.14em;font-style:italic}
+.pt-bar{width:0;height:1.5px;background:linear-gradient(90deg,var(--gold2),var(--rose));border-radius:2px;margin:12px auto 0;transition:width .5s ease .3s}
+.page-transition.active .pt-panel{transform:scaleY(1)}
+.page-transition.active .pt-logo{opacity:1;transform:scale(1)}
+.page-transition.active .pt-bar{width:100px}
+.ripple-fx{position:fixed;border-radius:50%;background:rgba(212,100,122,.18);transform:scale(0);animation:rippleOut .65s ease-out forwards;pointer-events:none;z-index:9998}
+@keyframes rippleOut{to{transform:scale(8);opacity:0}}
 </style>
 </head>
 <body>
 
-<!-- NAVBAR -->
+<!-- Cursor -->
+<div id="cur-dot"></div>
+<div id="cur-ring"></div>
+
+<!-- Petals -->
+<div class="petals" id="petalsWrap"></div>
+
+<!-- ── NAVBAR ── -->
 <nav class="nav" id="navbar">
   <div class="nav-inner">
+    <!-- LOGO -->
     <a href="#" class="nav-logo">
-      <img src="images/logo.png" alt="AWMC Logo" onerror="this.style.display='none'">
-      <div>
-        <div class="nav-brand">AMAZING WORLD</div>
-        <div class="nav-sub">MARKETING CORPORATION</div>
+      <div class="logo-svg-wrap">
+        <!-- SVG Logo: stylized M with rose -->
+        <svg class="logo-monogram" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="24" cy="24" r="23" fill="rgba(212,100,122,0.12)" stroke="rgba(212,100,122,0.35)" stroke-width="1"/>
+          <!-- M letterform -->
+          <path d="M10 34V14L18 27L24 16L30 27L38 14V34" stroke="url(#logoGrad)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+          <!-- small rose accent -->
+          <circle cx="24" cy="10" r="2.5" fill="url(#roseGrad)"/>
+          <path d="M22.5 10 Q24 7 25.5 10 Q24 11 22.5 10Z" fill="rgba(212,100,122,0.6)"/>
+          <path d="M24 8.5 Q27 10 25.5 11.5 Q24 11 24 8.5Z" fill="rgba(200,169,106,0.6)"/>
+          <defs>
+            <linearGradient id="logoGrad" x1="10" y1="14" x2="38" y2="34" gradientUnits="userSpaceOnUse">
+              <stop stop-color="#e8c87a"/>
+              <stop offset="0.5" stop-color="#d4647a"/>
+              <stop offset="1" stop-color="#c9a0a8"/>
+            </linearGradient>
+            <radialGradient id="roseGrad" cx="50%" cy="50%" r="50%">
+              <stop stop-color="#d4647a"/>
+              <stop offset="1" stop-color="#b84060"/>
+            </radialGradient>
+          </defs>
+        </svg>
+      </div>
+      <div class="logo-text-block">
+        <div class="logo-name">Marguax <em>Collections</em></div>
+        <div class="logo-tagline">✦ Fashion Boutique</div>
       </div>
     </a>
+
     <div class="nav-links" id="navLinks">
-      <a href="#products" class="nav-link">PRODUCTS</a>
-      <a href="#how-to-join" class="nav-link">HOW TO JOIN</a>
-      <a href="#packages" class="nav-link">PACKAGES</a>
-      <a href="#membership" class="nav-link">MEMBERSHIP</a>
-      <a href="auth/login.php" class="nav-link">LOGIN</a>
-      <a href="auth/register.php" class="nav-link nav-cta">GET STARTED</a>
+      <a href="#shop" class="nav-link">Shop</a>
+      <a href="#brandnew" class="nav-link">Brand New</a>
+      <a href="#preowned" class="nav-link">Pre-Owned</a>
+      <a href="#how-to-order" class="nav-link">How to Order</a>
+      <a href="auth/login.php" class="nav-link">Login</a>
+      <a href="auth/register.php" class="nav-link nav-cta">Shop Now ✦</a>
     </div>
     <div class="hamburger" id="hamburger" onclick="toggleNav()">
       <span></span><span></span><span></span>
@@ -259,539 +329,445 @@ footer{background:#060f1c;color:rgba(255,255,255,.6);padding:60px 24px 32px}
   </div>
 </nav>
 
-<!-- HERO -->
+<!-- ── HERO ── -->
 <section class="hero">
-  <div class="hero-glow"></div>
-  <div class="hero-glow2"></div>
+  <div class="hero-grain"></div>
+  <div class="hero-blob hb1"></div>
+  <div class="hero-blob hb2"></div>
+  <div class="hero-blob hb3"></div>
   <div class="hero-inner">
+    <!-- Left -->
     <div>
-      <div class="hero-badge"> AMAZING WORLD MARKETING CORPORATION</div>
-      <h1>Your Success<br>is Our <span>Business</span></h1>
-      <p class="hero-desc">Discover premium Ardeur de France fragrances, health supplements, and wellness products. Join our growing community of members and enjoy exclusive benefits and discounts.</p>
+      <h1>
+        Style D. Dress<br>
+        <span class="line-script">With Me</span>
+      </h1>
+      <p class="hero-desc">Curated brand-new outfits and pre-loved designer pieces. Every dress tells a story — find yours. Affordable fashion with a luxury feel.</p>
       <div class="hero-btns">
-        <a href="auth/register.php" class="btn-hero-primary">JOIN NOW</a>
-        <a href="#packages" class="btn-hero-outline">VIEW PACKAGES</a>
+        <a href="#shop" class="btn-hero-rose">✦ Shop Now</a>
+        <a href="#preowned" class="btn-hero-ghost">Pre-Owned →</a>
       </div>
     </div>
+    <!-- Right -->
     <div class="hero-right">
-      <div class="hero-card-main">
-        <img src="images/products/123.png" alt="Ardeur de France" onerror="this.style.background='rgba(255,255,255,.1)'">
+      <div class="hero-cards-top">
+        <img src="images/products/female-scent.jpg" alt="Featured Outfit" onerror="this.style.background='rgba(212,100,122,.15)';this.style.height='290px'">
+        <div class="hero-img-overlay">
+          <div>
+            <div class="hero-img-label">New Arrivals — Summer 2026</div>
+            <div class="hero-img-sub">Brand New Collection · Starting ₱599</div>
+          </div>
+        </div>
       </div>
-      <div class="hero-card-mini">
-  <?php
-  $isLoggedIn = isset($_SESSION['user_id']);
-  $categories = [
-    ['label' => 'Female Scents',   'icon' => '', 'slug' => 'female-scents'],
-    ['label' => 'Male Scents',     'icon' => '', 'slug' => 'male-scents'],
-    ['label' => 'Health Products', 'icon' => '', 'slug' => 'health-products'],
-    ['label' => 'Boosters',        'icon' => '', 'slug' => 'boosters'],
-  ];
-  foreach ($categories as $cat):
-    $href = $isLoggedIn
-      ? 'customer/products.php?category=' . urlencode($cat['slug'])
-      : 'auth/register.php?redirect=' . urlencode('customer/products.php?category=' . $cat['slug']);
-  ?>
-  <a href="<?= $href ?>" class="mini-card mini-card-link" title="<?= $cat['label'] ?>">
-    <div class="icon"><?= $cat['icon'] ?></div>
-    <div class="val"><?= $cat['label'] ?></div>
-    <?php if (!$isLoggedIn): ?>
-    <?php endif; ?>
-  </a>
-  <?php endforeach; ?>
-</div>
+      <div class="hero-mini-grid">
+        <?php
+        $isLoggedIn = isset($_SESSION['user_id']);
+        $categories = [
+          ['label'=>'Dresses','sub'=>'Brand New','icon'=>'👗','slug'=>'dresses'],
+          ['label'=>'Tops & Blouses','sub'=>'Brand New','icon'=>'👚','slug'=>'tops'],
+          ['label'=>'Pre-Owned','sub'=>'Gently Used','icon'=>'♻️','slug'=>'pre-owned'],
+          ['label'=>'Accessories','sub'=>'Complete Look','icon'=>'👜','slug'=>'accessories'],
+        ];
+        foreach($categories as $cat):
+          $href = $isLoggedIn
+            ? 'customer/products.php?category='.urlencode($cat['slug'])
+            : 'auth/register.php?redirect='.urlencode('customer/products.php?category='.$cat['slug']);
+        ?>
+        <a href="<?= $href ?>" class="mini-cat" title="<?= $cat['label'] ?>">
+          <span class="mini-cat-icon"><?= $cat['icon'] ?></span>
+          <div class="mini-cat-label"><?= $cat['label'] ?></div>
+          <div class="mini-cat-sub"><?= $cat['sub'] ?></div>
+        </a>
+        <?php endforeach; ?>
+      </div>
     </div>
   </div>
 </section>
 
-<!-- FEATURED PRODUCTS -->
-<section class="section products-bg" id="products">
-  <div class="section-inner">
-    <div class="text-center reveal">
-      <div class="section-badge">Our Products</div>
-      <h2 class="section-title">Premium Ardeur de France Collection</h2>
-      <p class="section-sub">High-quality fragrances, health supplements, and wellness products crafted for your lifestyle.</p>
+<!-- ── RIBBON ── -->
+<div class="ribbon">
+  <div class="ribbon-track">
+    <span class="ribbon-item">Brand New Outfits <span class="ribbon-sep">✦</span></span>
+    <span class="ribbon-item">Pre-Owned Designer Pieces <span class="ribbon-sep">✦</span></span>
+    <span class="ribbon-item">Affordable Fashion <span class="ribbon-sep">✦</span></span>
+    <span class="ribbon-item">Free Styling Tips <span class="ribbon-sep">✦</span></span>
+    <span class="ribbon-item">Marguax Collections Boutique <span class="ribbon-sep">✦</span></span>
+    <span class="ribbon-item">Brand New Outfits <span class="ribbon-sep">✦</span></span>
+    <span class="ribbon-item">Pre-Owned Designer Pieces <span class="ribbon-sep">✦</span></span>
+    <span class="ribbon-item">Affordable Fashion <span class="ribbon-sep">✦</span></span>
+    <span class="ribbon-item">Free Styling Tips <span class="ribbon-sep">✦</span></span>
+    <span class="ribbon-item">Marguax Collections Boutique <span class="ribbon-sep">✦</span></span>
+  </div>
+</div>
+
+<!-- ── SHOP CATEGORIES ── -->
+<section class="sec shop-cats" id="shop">
+  <div class="sec-inner">
+    <div class="t-center reveal">
+      <div class="eyebrow">Shop by Category</div>
+      <h2 class="sec-title">Find Your <em>Perfect Look</em></h2>
+      <p class="sec-sub">From everyday chic to special occasion glamour — browse our curated collections.</p>
+    </div>
+    <div class="cats-grid reveal">
+      <div class="cat-card">
+        <img src="images/products/female-scent.jpg" alt="Dresses" onerror="this.style.background='linear-gradient(135deg,#fce4ec,#ffd6e8)';this.style.height='100%'">
+        <div class="cat-overlay">
+          <span class="cat-pill">Brand New</span>
+          <div class="cat-name">Dresses</div>
+          <div class="cat-count">85+ pieces</div>
+        </div>
+        <div class="cat-arrow">→</div>
+      </div>
+      <div class="cat-card">
+        <img src="images/products/boosters.jpg" alt="Tops & Blouses" onerror="this.style.background='linear-gradient(135deg,#f5dde2,#c9a0a8)';this.style.height='100%'">
+        <div class="cat-overlay">
+          <span class="cat-pill">Brand New</span>
+          <div class="cat-name">Tops & Blouses</div>
+          <div class="cat-count">120+ pieces</div>
+        </div>
+        <div class="cat-arrow">→</div>
+      </div>
+      <div class="cat-card">
+        <img src="images/products/immukira.jpg" alt="Pre-Owned" onerror="this.style.background='linear-gradient(135deg,#e8c87a,#c8a96a)';this.style.height='100%'">
+        <div class="cat-overlay">
+          <span class="cat-pill" style="background:linear-gradient(135deg,var(--gold),#a07830)">Pre-Owned</span>
+          <div class="cat-name">Designer Finds</div>
+          <div class="cat-count">200+ pieces</div>
+        </div>
+        <div class="cat-arrow">→</div>
+      </div>
+      <div class="cat-card">
+        <img src="images/products/soap.jpg" alt="Accessories" onerror="this.style.background='linear-gradient(135deg,#c9a0a8,#9c6b7a)';this.style.height='100%'">
+        <div class="cat-overlay">
+          <span class="cat-pill" style="background:rgba(255,255,255,.2);backdrop-filter:blur(6px)">Accessories</span>
+          <div class="cat-name">Bags & More</div>
+          <div class="cat-count">60+ items</div>
+        </div>
+        <div class="cat-arrow">→</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── BRAND NEW ARRIVALS ── -->
+<section class="sec brandnew-bg" id="brandnew">
+  <div class="sec-inner">
+    <div class="t-center reveal">
+      <div class="eyebrow">New Arrivals</div>
+      <h2 class="sec-title">Brand New <em>Collection</em></h2>
+      <p class="sec-sub">Fresh-from-the-rack outfits. Tags still on. Your wardrobe refresh starts here.</p>
     </div>
     <div class="products-grid">
-      <div class="product-card reveal">
-        <img src="images/products/soap.jpg" alt="Male Scents" onerror="this.style.background='#f1f5f9';this.style.height='200px'">
-        <div class="product-card-body">
-          <span class="product-tag">Fragrance</span>
-          <h3>Male Scents — 16 Variants</h3>
-          <p>Inspired by world-famous brands. From M1 CHAMP to SJ BIG BOSS — find your signature scent.</p>
-          <div class="product-price">₱498 <small style="font-size:.75rem;color:#94a3b8;font-weight:400">per bottle</small></div>
+      <div class="prod-card reveal">
+        <div class="prod-img-wrap">
+          <img src="images/products/female-scent.jpg" alt="Floral Maxi Dress" onerror="this.style.background='#fce4ec';this.style.height='300px'">
+          <span class="prod-badge badge-new">Brand New</span>
+          <div class="prod-wish">🤍</div>
+        </div>
+        <div class="prod-body">
+          <div class="prod-tag">Dresses</div>
+          <div class="prod-name">Floral Maxi Dress</div>
+          <div class="prod-desc">Lightweight chiffon with a romantic floral print. Perfect for beach getaways or casual dates.</div>
+          <div class="prod-foot">
+            <div class="prod-price">₱850</div>
+            <a href="auth/register.php" class="prod-btn">Add to Cart</a>
+          </div>
         </div>
       </div>
-      <div class="product-card reveal">
-        <img src="images/products/female-scent.jpg" alt="Female Scents" onerror="this.style.background='#f1f5f9';this.style.height='200px'">
-        <div class="product-card-body">
-          <span class="product-tag">Fragrance</span>
-          <h3>Female Scents — 14 Variants</h3>
-          <p>From F1 DAZZLING to B BIANCA — elegant and captivating fragrances for every occasion.</p>
-          <div class="product-price">₱498 <small style="font-size:.75rem;color:#94a3b8;font-weight:400">per bottle</small></div>
+      <div class="prod-card reveal">
+        <div class="prod-img-wrap">
+          <img src="images/products/123.png" alt="Satin Slip Dress" onerror="this.style.background='#fce4ec';this.style.height='300px'">
+          <span class="prod-badge badge-new">Brand New</span>
+          <span class="prod-badge badge-sale" style="left:auto;right:14px">SALE</span>
+          <div class="prod-wish">🤍</div>
+        </div>
+        <div class="prod-body">
+          <div class="prod-tag">Dresses</div>
+          <div class="prod-name">Satin Slip Dress</div>
+          <div class="prod-desc">Elegant cowl-neck satin dress in blush pink. Flattering silhouette for every body type.</div>
+          <div class="prod-foot">
+            <div class="prod-price">₱1,200 <span class="was">₱1,800</span></div>
+            <a href="auth/register.php" class="prod-btn">Add to Cart</a>
+          </div>
         </div>
       </div>
-      <div class="product-card reveal">
-        <img src="images/products/immukira.jpg" alt="Health" onerror="this.style.background='#f1f5f9';this.style.height='200px'">
-        <div class="product-card-body">
-          <span class="product-tag" style="background:rgba(16,185,129,.1);color:#059669">Health</span>
-          <h3>Amazing Immu-Pair</h3>
-          <p>Immukira-AG & Immuvit-ZinC — boost your immunity with nature's finest ingredients.</p>
-          <div class="product-price">₱600 <small style="font-size:.75rem;color:#94a3b8;font-weight:400">per bottle</small></div>
+      <div class="prod-card reveal">
+        <div class="prod-img-wrap">
+          <img src="images/products/boosters.jpg" alt="Linen Co-ord Set" onerror="this.style.background='#fce4ec';this.style.height='300px'">
+          <span class="prod-badge badge-new">Brand New</span>
+          <div class="prod-wish">🤍</div>
+        </div>
+        <div class="prod-body">
+          <div class="prod-tag">Sets</div>
+          <div class="prod-name">Linen Co-ord Set</div>
+          <div class="prod-desc">Breathable linen top + wide-leg pants set. Effortlessly chic from morning coffee to dinner.</div>
+          <div class="prod-foot">
+            <div class="prod-price">₱1,450</div>
+            <a href="auth/register.php" class="prod-btn">Add to Cart</a>
+          </div>
         </div>
       </div>
-      <div class="product-card reveal">
-        <img src="images/products/boosters.jpg" alt="Boosters" onerror="this.style.background='#f1f5f9';this.style.height='200px'">
-        <div class="product-card-body">
-          <span class="product-tag" style="background:rgba(124,58,237,.1);color:#7c3aed">Wellness</span>
-          <h3>Amazing Healthy Boosters</h3>
-          <p>Organic Green Barley, Slimming Coffee, and Extra Strong Coffee for your daily wellness.</p>
-          <div class="product-price">₱750 <small style="font-size:.75rem;color:#94a3b8;font-weight:400">per box</small></div>
+      <div class="prod-card reveal">
+        <div class="prod-img-wrap">
+          <img src="images/products/oil.jpg" alt="Embroidered Blouse" onerror="this.style.background='#fce4ec';this.style.height='300px'">
+          <span class="prod-badge badge-new">Brand New</span>
+          <div class="prod-wish">🤍</div>
+        </div>
+        <div class="prod-body">
+          <div class="prod-tag">Tops</div>
+          <div class="prod-name">Embroidered Blouse</div>
+          <div class="prod-desc">Delicate hand-embroidered details on crisp cotton. Pairs beautifully with jeans or midi skirts.</div>
+          <div class="prod-foot">
+            <div class="prod-price">₱680</div>
+            <a href="auth/register.php" class="prod-btn">Add to Cart</a>
+          </div>
         </div>
       </div>
     </div>
-    <div style="text-align:center;margin-top:40px">
-      <a href="auth/register.php" style="display:inline-flex;align-items:center;gap:8px;padding:14px 32px;background:var(--blue);color:#fff;border-radius:12px;font-weight:700;transition:all .3s" onmouseover="this.style.background='#1d4ed8';this.style.transform='translateY(-2px)'" onmouseout="this.style.background='var(--blue)';this.style.transform='none'">
-        🛍️ Browse All Products →
-      </a>
+    <div style="text-align:center;margin-top:44px">
+      <a href="auth/register.php" class="btn-hero-rose" style="display:inline-flex">👗 Browse All New Arrivals →</a>
     </div>
   </div>
 </section>
 
-<!-- HOW TO JOIN -->
-<section class="section how-bg" id="how-to-join">
-  <div class="section-inner">
-    <div class="text-center reveal">
-      <div class="section-badge" style="background:rgba(245,158,11,.15);color:var(--amber)">How to Join</div>
-      <h2 class="section-title" style="color:#fff">3 Simple Steps to Get Started</h2>
-      <p class="section-sub" style="color:rgba(255,255,255,.65);margin:0 auto">Becoming a member is quick and easy. Follow these three steps and start enjoying exclusive benefits.</p>
+<!-- ── PRE-OWNED SECTION ── -->
+<section class="sec preowned-bg" id="preowned">
+  <div class="sec-inner">
+    <div class="preowned-inner">
+      <!-- Images -->
+      <div class="reveal" style="position:relative">
+        <div class="preowned-imgs">
+          <div class="po-float-tag">Pre-Owned ♻️</div>
+          <div class="po-img-main">
+            <img src="images/products/gold-package.jpg" alt="Pre-owned fashion" onerror="this.style.background='rgba(212,100,122,.15)';this.style.height='280px'">
+          </div>
+          <div class="po-img-sm">
+            <img src="images/products/female-scent.jpg" alt="Pre-owned dress" onerror="this.style.background='rgba(212,100,122,.1)';this.style.height='180px'">
+          </div>
+          <div class="po-img-sm">
+            <img src="images/products/immukira.jpg" alt="Pre-owned outfit" onerror="this.style.background='rgba(200,169,106,.1)';this.style.height='180px'">
+          </div>
+        </div>
+      </div>
+      <!-- Content -->
+      <div class="preowned-content reveal">
+        <div class="eyebrow">Pre-Owned</div>
+        <h2 class="sec-title">Gently Loved,<br><em>Still Beautiful</em></h2>
+        <p class="sec-sub">Shop pre-owned designer and branded pieces at a fraction of the price. Sustainable fashion that's still stunning.</p>
+        <div class="po-perks">
+          <div class="po-perk">
+            <div class="po-perk-icon">✅</div>
+            <div>
+              <div class="po-perk-title">Authenticated & Inspected</div>
+              <div class="po-perk-desc">Every pre-owned item is checked for quality before listing.</div>
+            </div>
+          </div>
+          <div class="po-perk">
+            <div class="po-perk-icon">💸</div>
+            <div>
+              <div class="po-perk-title">Up to 70% Off Retail</div>
+              <div class="po-perk-desc">Designer looks without the designer price tag.</div>
+            </div>
+          </div>
+          <div class="po-perk">
+            <div class="po-perk-icon">♻️</div>
+            <div>
+              <div class="po-perk-title">Sustainable Shopping</div>
+              <div class="po-perk-desc">Give beautiful clothes a second life and reduce fashion waste.</div>
+            </div>
+          </div>
+          <div class="po-perk">
+            <div class="po-perk-icon">📦</div>
+            <div>
+              <div class="po-perk-title">Carefully Packaged</div>
+              <div class="po-perk-desc">Arrives clean, pressed, and wrapped with love.</div>
+            </div>
+          </div>
+        </div>
+        <div class="po-btns">
+          <a href="auth/register.php" class="btn-hero-rose">Shop Pre-Owned →</a>
+          <a href="auth/register.php" class="btn-hero-ghost">Sell Your Clothes</a>
+        </div>
+      </div>
     </div>
-    <div class="steps-grid">
-      <div class="step reveal">
+  </div>
+</section>
+
+<!-- ── HOW TO ORDER ── -->
+<section class="sec howorder-bg" id="how-to-order">
+  <div class="sec-inner">
+    <div class="t-center reveal">
+      <div class="eyebrow">How to Order</div>
+      <h2 class="sec-title">Shopping Made <em>Simple</em></h2>
+      <p class="sec-sub">Get your dream outfit in just a few easy steps.</p>
+    </div>
+    <div class="steps-row">
+      <div class="step-card reveal">
         <div class="step-num">1</div>
-        <img src="images/products/boosters.jpg" alt="Attend ABOP" class="step-img" onerror="this.style.background='rgba(255,255,255,.1)'">
-        <h3>Attend ABOP</h3>
-        <p>Join our Amazing Business Opportunity Presentation (ABOP). Talk to our distributors and learn more about the business opportunity.</p>
+        <span class="step-icon">👗</span>
+        <div class="step-title">Browse & Pick</div>
+        <div class="step-desc">Browse our brand-new and pre-owned collections. Filter by size, style, or price to find your perfect match.</div>
       </div>
-      <div class="step reveal">
+      <div class="step-card reveal">
         <div class="step-num">2</div>
-        <img src="images/products/silver-package.jpg" alt="Get Package" class="step-img" onerror="this.style.background='rgba(255,255,255,.1)'">
-        <h3>Get Your Package</h3>
-        <p>Choose the product package that fits your lifestyle and budget. From Silver to Diamond — there's a package for everyone.</p>
+        <span class="step-icon">🛒</span>
+        <div class="step-title">Add to Cart</div>
+        <div class="step-desc">Add your favorites to cart. Create a free account for faster checkout and order tracking.</div>
       </div>
-      <div class="step reveal">
+      <div class="step-card reveal">
         <div class="step-num">3</div>
-        <img src="images/products/immukira.jpg" alt="Sign Up" class="step-img" onerror="this.style.background='rgba(255,255,255,.1)'">
-        <h3>Sign Up & Create Account</h3>
-        <p>Register on our ordering system. Get your member account, start ordering products, and enjoy exclusive member discounts.</p>
+        <span class="step-icon">💳</span>
+        <div class="step-title">Pay Securely</div>
+        <div class="step-desc">Choose from GCash, PayMaya, PayPal, Cash on Pickup, or Cash on Delivery.</div>
+      </div>
+      <div class="step-card reveal">
+        <div class="step-num">4</div>
+        <span class="step-icon">🎀</span>
+        <div class="step-title">Wear & Shine</div>
+        <div class="step-desc">Your order arrives beautifully packaged. Wear it, love it, and share your look with us!</div>
       </div>
     </div>
   </div>
-</section>
+</section> 
 
-<!-- PACKAGES -->
-<section class="section" id="packages">
-  <div class="section-inner">
-    <div class="text-center reveal">
-      <div class="section-badge">Business Packages</div>
-      <h2 class="section-title">Choose Your Package</h2>
-      <p class="section-sub">One-time investment. Predefined sets of products with high ROI. Choose the package that suits your goals.</p>
-    </div>
-    <div class="packages-grid">
-      <div class="pkg-card pkg-silver reveal">
-        <div class="pkg-top">
-          <div class="pkg-icon">🥈</div>
-          <div class="pkg-name">Silver Package</div>
-          <div class="pkg-price">₱6,888 <small>one-time</small></div>
-        </div>
-        <div class="pkg-body">
-          <div class="pkg-item"><span class="ck">✓</span>17 Premium Perfumes (Fragrance)</div>
-          <div class="pkg-item"><span class="ck">✓</span>OR 14 Immukira-AG / ImmuVit-ZinC</div>
-          <div class="pkg-item"><span class="ck">✓</span>OR 11 Boxes + 2 Sachets Boosters</div>
-          <div class="pkg-item"><span class="ck">✓</span>Full Member Benefits</div>
-          <div class="pkg-roi"> ROI up to ₱8,466</div>
-          <a href="auth/register.php" class="pkg-btn">Get Silver Package</a>
-        </div>
-      </div>
-      <div class="pkg-card pkg-gold featured reveal">
-        <div class="pkg-ribbon">POPULAR</div>
-        <div class="pkg-top">
-          <div class="pkg-icon">🥇</div>
-          <div class="pkg-name">Gold Package</div>
-          <div class="pkg-price">₱10,888 <small>one-time</small></div>
-        </div>
-        <div class="pkg-body">
-          <div class="pkg-item"><span class="ck">✓</span>26 Premium Perfumes (Fragrance)</div>
-          <div class="pkg-item"><span class="ck">✓</span>OR 22 Immukira-AG / ImmuVit-ZinC</div>
-          <div class="pkg-item"><span class="ck">✓</span>OR 17 Boxes + 5 Sachets Boosters</div>
-          <div class="pkg-item"><span class="ck">✓</span>Full Member Benefits + Priority</div>
-          <div class="pkg-roi"> ROI up to ₱13,200</div>
-          <a href="auth/register.php" class="pkg-btn">Get Gold Package</a>
-        </div>
-      </div>
-      <div class="pkg-card pkg-ruby reveal">
-        <div class="pkg-top">
-          <div class="pkg-icon">💎</div>
-          <div class="pkg-name">Ruby Package</div>
-          <div class="pkg-price">₱20,888 <small>one-time</small></div>
-        </div>
-        <div class="pkg-body">
-          <div class="pkg-item"><span class="ck">✓</span>50 Premium Perfumes (Fragrance)</div>
-          <div class="pkg-item"><span class="ck">✓</span>OR 42 Immukira-AG / ImmuVit-ZinC</div>
-          <div class="pkg-item"><span class="ck">✓</span>OR 33 Boxes + 5 Sachets Boosters</div>
-          <div class="pkg-item"><span class="ck">✓</span>All Member Benefits + VIP</div>
-          <div class="pkg-roi"> ROI up to ₱25,200</div>
-          <a href="auth/register.php" class="pkg-btn">Get Ruby Package</a>
-        </div>
-      </div>
-      <div class="pkg-card pkg-emerald reveal">
-        <div class="pkg-top">
-          <div class="pkg-icon">🟢</div>
-          <div class="pkg-name">Emerald Package</div>
-          <div class="pkg-price">₱50,888 <small>one-time</small></div>
-        </div>
-        <div class="pkg-body">
-          <div class="pkg-item"><span class="ck">✓</span>123 Premium Perfumes</div>
-          <div class="pkg-item"><span class="ck">✓</span>OR 102 Immukira-AG / ImmuVit-ZinC</div>
-          <div class="pkg-item"><span class="ck">✓</span>OR 81 Boxes + 5 Sachets Boosters</div>
-          <div class="pkg-item"><span class="ck">✓</span>All Benefits + Dedicated Support</div>
-          <div class="pkg-roi"> ROI up to ₱61,254</div>
-          <a href="auth/register.php" class="pkg-btn">Get Emerald Package</a>
-        </div>
-      </div>
-      <div class="pkg-card pkg-diamond reveal">
-        <div class="pkg-ribbon">ULTIMATE</div>
-        <div class="pkg-top">
-          <div class="pkg-icon">💠</div>
-          <div class="pkg-name">Diamond Package</div>
-          <div class="pkg-price">₱100,888 <small>one-time</small></div>
-        </div>
-        <div class="pkg-body">
-          <div class="pkg-item"><span class="ck">✓</span>243 Premium Perfumes</div>
-          <div class="pkg-item"><span class="ck">✓</span>OR 202 Immukira-AG / ImmuVit-ZinC</div>
-          <div class="pkg-item"><span class="ck">✓</span>OR 161 Boxes + 5 Sachets Boosters</div>
-          <div class="pkg-item"><span class="ck">✓</span>All Benefits + VIP Diamond Status</div>
-          <div class="pkg-roi"> ROI up to ₱121,200</div>
-          <a href="auth/register.php" class="pkg-btn">Get Diamond Package</a>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- MEMBERSHIP BENEFITS -->
-<section class="section membership-bg" id="membership">
-  <div class="section-inner">
-    <div class="reveal">
-      <div class="section-badge">Membership Benefits</div>
-      <h2 class="section-title">Why Become a Member?</h2>
-      <p class="section-sub">Unlock a world of exclusive benefits when you join Amazing World Marketing Corporation as a member.</p>
-    </div>
-    <div class="membership-grid">
-      <div class="membership-img reveal">
-        <img src="images/products/gold-package.jpg" alt="Membership" onerror="this.style.background='#f1f5f9'">
-      </div>
-      <div class="membership-features reveal">
-        <div class="mf-item">
-          <div class="mf-icon blue">🛍️</div>
-          <div class="mf-text">
-            <h4>Exclusive Member Products</h4>
-            <p>Access a special catalog of member-only products not available to regular customers. Enjoy premium items at exclusive prices.</p>
-          </div>
-        </div>
-        <div class="mf-item">
-          <div class="mf-icon amber"></div>
-          <div class="mf-text">
-            <h4>Member Discounts (5%–15%)</h4>
-            <p>Save on every order with tiered discounts. Silver members get 5%, Gold 10%, and higher tiers enjoy up to 15% off.</p>
-          </div>
-        </div>
-        <div class="mf-item">
-          <div class="mf-icon green">📦</div>
-          <div class="mf-text">
-            <h4>High ROI Business Packages</h4>
-            <p>Our packages are designed to give you a return on investment. Buy a package, resell products, and earn more than you invested.</p>
-          </div>
-        </div>
-        <div class="mf-item">
-          <div class="mf-icon purple">⭐</div>
-          <div class="mf-text">
-            <h4>Priority Queue & VIP Support</h4>
-            <p>Members get priority queue numbers for faster order processing and dedicated customer support for premium tiers.</p>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- ADS / PROMOTIONS -->
-<section class="section ads-bg">
-  <div class="section-inner">
-    <div class="text-center reveal">
-      <div class="section-badge" style="background:rgba(245,158,11,.15);color:var(--amber)">Promotions</div>
-      <h2 class="section-title" style="color:#fff">Featured Products & Promos</h2>
-    </div>
-    <div class="ads-grid">
-      <div class="ad-card ad-featured reveal">
-        <div class="ad-badge">🔥 Best Seller</div>
-        <img src="images/products/123.png" alt="Male Scents" onerror="this.style.background='rgba(255,255,255,.1)'">
-        <div class="ad-overlay">
-          <div>
-            <div class="ad-label">Ardeur de France — Male Collection</div>
-            <div class="ad-sub">16 premium scents inspired by world-famous brands • ₱498 per bottle</div>
-          </div>
-        </div>
-      </div>
-      <div class="ad-card reveal">
-        <img src="images/products/immukira.jpg" alt="Immukira" onerror="this.style.background='rgba(255,255,255,.1)'">
-        <div class="ad-overlay">
-          <div>
-            <div class="ad-label">Amazing Immu-Pair</div>
-            <div class="ad-sub">Nature + Nutrition • ₱600</div>
-          </div>
-        </div>
-      </div>
-      <div class="ad-card reveal">
-        <img src="images/products/321." alt="Soaps" onerror="this.style.background='rgba(255,255,255,.1)'">
-        <div class="ad-overlay">
-          <div>
-            <div class="ad-label">Ardeur Lightening Soaps</div>
-            <div class="ad-sub">Gluta Papaya & Kojic Collagen • ₱180</div>
-          </div>
-        </div>
-      </div>
-      <div class="ad-card reveal">
-        <img src="images/products/female-scent.jpg" alt="Female Scents" onerror="this.style.background='rgba(255,255,255,.1)'">
-        <div class="ad-overlay">
-          <div>
-            <div class="ad-label">Female Scents Collection</div>
-            <div class="ad-sub">14 elegant fragrances • ₱498</div>
-          </div>
-        </div>
-      </div>
-      <div class="ad-card reveal">
-        <img src="images/products/oil.jpg" alt="Essential Oils" onerror="this.style.background='rgba(255,255,255,.1)'">
-        <div class="ad-overlay">
-          <div>
-            <div class="ad-label">Essential Oils</div>
-            <div class="ad-sub">Relaxing & Refreshing • ₱300</div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- PAYMENT METHODS -->
-<section class="section" style="background:var(--bg)">
-  <div class="section-inner">
-    <div class="text-center reveal">
-      <div class="section-badge">Payment Options</div>
-      <h2 class="section-title">Flexible Payment Methods</h2>
-      <p class="section-sub">We accept multiple payment methods for your convenience.</p>
-    </div>
-    <div class="payment-grid">
-      <div class="pay-card reveal"><span class="pay-icon">💵</span><div><div class="pay-name">Cash on Pickup</div><div class="pay-desc">Pay when you pick up</div></div></div>
-      <div class="pay-card reveal"><span class="pay-icon">🏠</span><div><div class="pay-name">Cash on Delivery</div><div class="pay-desc">Pay at your door</div></div></div>
-      <div class="pay-card reveal"><span class="pay-icon">📱</span><div><div class="pay-name">GCash</div><div class="pay-desc">Quick mobile payment</div></div></div>
-      <div class="pay-card reveal"><span class="pay-icon">🏦</span><div><div class="pay-name">PayMaya</div><div class="pay-desc">Digital wallet payment</div></div></div>
-      <div class="pay-card reveal"><span class="pay-icon">🌐</span><div><div class="pay-name">PayPal</div><div class="pay-desc">Secure online payment</div></div></div>
-    </div>
-  </div>
-</section>
-
-<!-- TESTIMONIALS -->
-<section class="section">
-  <div class="section-inner">
-    <div class="text-center reveal">
-      <div class="section-badge">Testimonials</div>
-      <h2 class="section-title">What Our Members Say</h2>
-    </div>
-    <div class="testi-grid">
-      <div class="testi-card reveal">
-        <div class="testi-stars">★★★★★</div>
-        <p class="testi-text">I joined with the Silver Package and already earned back my investment within 2 months! The perfumes are amazing quality and my clients love them.</p>
-        <div class="testi-author">
-          <div class="testi-avatar">M</div>
-          <div><div class="testi-name">Maria Santos</div><div class="testi-role">Silver Member • Quezon City</div></div>
-        </div>
-      </div>
-      <div class="testi-card reveal">
-        <div class="testi-stars">★★★★★</div>
-        <p class="testi-text">The Immukira-AG has been life-changing for my family. My health improved significantly and I also earn by reselling. Best investment I ever made!</p>
-        <div class="testi-author">
-          <div class="testi-avatar">J</div>
-          <div><div class="testi-name">Jose Reyes</div><div class="testi-role">Gold Member • Cebu City</div></div>
-        </div>
-      </div>
-      <div class="testi-card reveal">
-        <div class="testi-stars">★★★★★</div>
-        <p class="testi-text">The ordering system is so easy to use. I can place orders anytime, track my queue number, and the delivery is always on time. Highly recommended!</p>
-        <div class="testi-author">
-          <div class="testi-avatar">A</div>
-          <div><div class="testi-name">Ana Cruz</div><div class="testi-role">Ruby Member • Manila</div></div>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- CTA -->
+<!-- ── CTA ── -->
 <section class="cta-section">
-  <h2>Ready to Start Your Journey?</h2>
-  <p>Join thousands of Amazing World Marketing Corporation members and start earning today. No experience needed!</p>
+  <h2>Your Dream Wardrobe<br><em>Awaits You</em></h2>
+  <p>Shop brand-new outfits and pre-loved designer pieces. Affordable. Curated. Beautiful.</p>
   <div class="cta-btns">
-    <a href="auth/register.php" class="btn-cta-white">🚀 Create Free Account</a>
-    <a href="#packages" class="btn-cta-outline">📦 View All Packages</a>
+    <a href="auth/register.php" class="btn-cta-w">✦ Start Shopping</a>
+    <a href="#packages" class="btn-cta-ghost">View Reseller Packages →</a>
   </div>
 </section>
 
-<!-- FOOTER -->
+<!-- ── FOOTER ── -->
 <footer>
   <div class="footer-inner">
     <div class="footer-grid">
-      <div class="footer-brand">
-        <img src="images/logo.png" alt="AWMC" onerror="this.style.display='none'">
-        <p>Amazing World Marketing Corporation — bringing premium Ardeur de France products and wellness solutions to Filipino families.</p>
-        <div class="social-links" style="margin-top:16px">
-          <a href="https://facebook.com/amazingworldmktg" class="social-link">📘</a>
+      <div class="footer-brand-col">
+        <div class="footer-logo-row">
+          <svg width="40" height="40" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="24" cy="24" r="23" fill="rgba(212,100,122,0.1)" stroke="rgba(212,100,122,0.3)" stroke-width="1"/>
+            <path d="M10 34V14L18 27L24 16L30 27L38 14V34" stroke="url(#fLogoGrad)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+            <circle cx="24" cy="10" r="2.5" fill="#d4647a"/>
+            <defs>
+              <linearGradient id="fLogoGrad" x1="10" y1="14" x2="38" y2="34" gradientUnits="userSpaceOnUse">
+                <stop stop-color="#e8c87a"/><stop offset="0.5" stop-color="#d4647a"/><stop offset="1" stop-color="#c9a0a8"/>
+              </linearGradient>
+            </defs>
+          </svg>
+          <div>
+            <div class="footer-brand-name">Marguax <em>Collections</em></div>
+            <div class="footer-tagline">✦ Fashion Boutique</div>
+          </div>
+        </div>
+        <p>Your one-stop boutique for brand-new outfits and pre-owned designer pieces. Affordable fashion, luxury feel.</p>
+        <div class="social-links">
+          <a href="https://facebook.com/Marguaxworldmktg" class="social-link">📘</a>
           <a href="#" class="social-link">📸</a>
-          <a href="#" class="social-link">🐦</a>
+          <a href="#" class="social-link">🎵</a>
         </div>
       </div>
       <div class="footer-col">
-        <h4>Products</h4>
-        <a href="auth/register.php">Male Scents</a>
-        <a href="auth/register.php">Female Scents</a>
-        <a href="auth/register.php">Health Products</a>
-        <a href="auth/register.php">Wellness Boosters</a>
-        <a href="auth/register.php">Soaps & Oils</a>
+        <h4>Shop</h4>
+        <a href="auth/register.php">New Arrivals</a>
+        <a href="auth/register.php">Dresses</a>
+        <a href="auth/register.php">Tops & Blouses</a>
+        <a href="auth/register.php">Sets & Co-ords</a>
+        <a href="auth/register.php">Accessories</a>
       </div>
       <div class="footer-col">
-        <h4>Membership</h4>
-        <a href="auth/register.php">Silver Package</a>
-        <a href="auth/register.php">Gold Package</a>
-        <a href="auth/register.php">Ruby Package</a>
-        <a href="auth/register.php">Emerald Package</a>
-        <a href="auth/register.php">Diamond Package</a>
+        <h4>Pre-Owned</h4>
+        <a href="auth/register.php">Designer Finds</a>
+        <a href="auth/register.php">Branded Pieces</a>
+        <a href="auth/register.php">Sell Your Clothes</a>
+        <a href="auth/register.php">How It Works</a>
       </div>
       <div class="footer-col">
-        <h4>Company</h4>
-        <a href="#how-to-join">How to Join</a>
-        <a href="#membership">Benefits</a>
+        <h4>Account</h4>
+        <a href="#how-to-order">How to Order</a>
+        <a href="#packages">Reseller Packages</a>
         <a href="auth/login.php">Login</a>
         <a href="auth/register.php">Register</a>
         <a href="https://www.awmc.io">www.awmc.io</a>
       </div>
     </div>
     <div class="footer-bottom">
-      <span>© 2026 Amazing World Marketing Corporation. All rights reserved.</span>
-      <span>🌐 www.awmc.io | 📘 amazingworldmktg</span>
+      <span>© 2026 Marguax Collections Fashion Boutique. All rights reserved.</span>
+      <span>📘 Marguaxworldmktg · 🌐 www.awmc.io</span>
     </div>
   </div>
 </footer>
 
+<!-- Page Transition -->
+<div class="page-transition" id="pageTransition">
+  <div class="pt-panel"></div>
+  <div class="pt-logo">
+    <span class="pt-icon">👗</span>
+    <div class="pt-text">Marguax Collections</div>
+    <div class="pt-bar"></div>
+  </div>
+</div>
+
 <script>
-// Navbar scroll effect
-window.addEventListener('scroll', () => {
-  document.getElementById('navbar').classList.toggle('scrolled', window.scrollY > 50);
+// ── Cursor ──
+const dot=document.getElementById('cur-dot'),ring=document.getElementById('cur-ring');
+let mx=0,my=0,rx=0,ry=0;
+document.addEventListener('mousemove',e=>{mx=e.clientX;my=e.clientY});
+(function tick(){
+  dot.style.left=mx+'px';dot.style.top=my+'px';
+  rx+=(mx-rx)*.14;ry+=(my-ry)*.14;
+  ring.style.left=rx+'px';ring.style.top=ry+'px';
+  requestAnimationFrame(tick);
+})();
+document.querySelectorAll('a,button,.cat-card,.prod-card,.pkg-card,.po-perk,.mini-cat,.pay-card,.testi-card').forEach(el=>{
+  el.addEventListener('mouseenter',()=>{ring.style.width='54px';ring.style.height='54px';ring.style.borderColor='var(--rose)'});
+  el.addEventListener('mouseleave',()=>{ring.style.width='38px';ring.style.height='38px';ring.style.borderColor='rgba(212,100,122,.55)'});
 });
 
-// Mobile nav
-function toggleNav() {
-  document.getElementById('navLinks').classList.toggle('open');
+// ── Petals ──
+const pw=document.getElementById('petalsWrap');
+const colors=['rgba(212,100,122,.7)','rgba(245,221,226,.8)','rgba(200,169,106,.6)','rgba(201,160,168,.7)'];
+for(let i=0;i<22;i++){
+  const p=document.createElement('div');p.className='petal';
+  p.style.cssText=`left:${Math.random()*100}vw;width:${7+Math.random()*10}px;height:${10+Math.random()*14}px;background:${colors[i%colors.length]};animation-duration:${10+Math.random()*14}s;animation-delay:${Math.random()*20}s;transform:rotate(${Math.random()*360}deg)`;
+  pw.appendChild(p);
 }
 
-// Smooth scroll for nav links
-document.querySelectorAll('a[href^="#"]').forEach(a => {
-  a.addEventListener('click', e => {
-    const target = document.querySelector(a.getAttribute('href'));
-    if (target) { e.preventDefault(); target.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
+// ── Navbar ──
+window.addEventListener('scroll',()=>document.getElementById('navbar').classList.toggle('scrolled',scrollY>50));
+function toggleNav(){document.getElementById('navLinks').classList.toggle('open')}
+
+// ── Smooth scroll ──
+document.querySelectorAll('a[href^="#"]').forEach(a=>{
+  a.addEventListener('click',e=>{
+    const t=document.querySelector(a.getAttribute('href'));
+    if(t){e.preventDefault();t.scrollIntoView({behavior:'smooth',block:'start'});}
     document.getElementById('navLinks').classList.remove('open');
   });
 });
 
-// Scroll reveal animations
-const observer = new IntersectionObserver((entries) => {
-  entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); } });
-}, { threshold: 0.1 });
-document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+// ── Reveal ──
+const obs=new IntersectionObserver(entries=>entries.forEach(e=>{if(e.isIntersecting)e.target.classList.add('visible')}),{threshold:.09});
+document.querySelectorAll('.reveal').forEach(el=>obs.observe(el));
+
+// ── Transition ──
+const tr=document.getElementById('pageTransition');
+function triggerTransition(url){tr.classList.add('active');setTimeout(()=>window.location.href=url,1300)}
+document.querySelectorAll('a[href]').forEach(link=>{
+  const href=link.getAttribute('href');
+  if(!href||href.startsWith('#')||href.startsWith('http')||href.startsWith('mailto'))return;
+  link.addEventListener('click',function(e){e.preventDefault();triggerTransition(this.href)});
+});
+
+// ── Ripple ──
+document.addEventListener('click',e=>{
+  const r=document.createElement('div'),s=60;
+  r.className='ripple-fx';
+  r.style.cssText=`width:${s}px;height:${s}px;left:${e.clientX-s/2}px;top:${e.clientY-s/2}px`;
+  document.body.appendChild(r);setTimeout(()=>r.remove(),700);
+});
+window.addEventListener('pageshow',()=>tr.classList.remove('active'));
 </script>
-
-
-
-
-
-
-
-
-<!-- PAGE TRANSITION -->
-<style>
-.page-transition{position:fixed;inset:0;z-index:99999;pointer-events:none;display:flex;align-items:center;justify-content:center}
-.pt-panel{position:absolute;inset:0;background:linear-gradient(135deg,#0b1f3a,#2563eb);transform:scaleY(0);transform-origin:bottom;transition:transform .5s cubic-bezier(.77,0,.18,1)}
-.pt-logo{position:relative;z-index:2;opacity:0;transform:scale(.5);transition:all .4s ease .2s;text-align:center}
-.pt-logo-icon{font-size:3rem;display:block;margin-bottom:8px;animation:ptSpin 1s linear infinite}
-.pt-logo-text{font-family:'Sora',sans-serif;font-weight:800;font-size:1rem;color:#fff;letter-spacing:.1em;text-transform:uppercase}
-.pt-logo-bar{width:0;height:3px;background:linear-gradient(90deg,#f59e0b,#f97316);border-radius:2px;margin:10px auto 0;transition:width .5s ease .3s}
-.page-transition.active .pt-panel{transform:scaleY(1)}
-.page-transition.active .pt-logo{opacity:1;transform:scale(1)}
-.page-transition.active .pt-logo-bar{width:120px}
-@keyframes ptSpin{0%{transform:rotate(0deg) scale(1)}50%{transform:rotate(180deg) scale(1.2)}100%{transform:rotate(360deg) scale(1)}}
-.ripple-effect{position:fixed;border-radius:50%;background:rgba(37,99,235,.25);transform:scale(0);animation:rippleOut .6s ease-out forwards;pointer-events:none;z-index:9998}
-@keyframes rippleOut{to{transform:scale(8);opacity:0}}
-</style>
-
-<div class="page-transition" id="pageTransition">
-  <div class="pt-panel"></div>
-  <div class="pt-logo">
-    <span class="pt-logo-icon">🌐</span>
-    <div class="pt-logo-text">Amazing World</div>
-    <div class="pt-logo-bar"></div>
-  </div>
-</div>
-
-<script>
-const transition = document.getElementById('pageTransition');
-
-function triggerTransition(url) {
-  transition.classList.add('active');
-  setTimeout(() => { window.location.href = url; }, 1300);
-}
-
-// Intercept all internal links (skip anchor #links)
-document.querySelectorAll('a[href]').forEach(link => {
-  const href = link.getAttribute('href');
-  if (!href || href.startsWith('#') || href.startsWith('http') || href.startsWith('mailto')) return;
-  link.addEventListener('click', function(e) {
-    e.preventDefault();
-    triggerTransition(this.href);
-  });
-});
-
-// Ripple effect on every click
-document.addEventListener('click', function(e) {
-  const ripple = document.createElement('div');
-  const size = 60;
-  ripple.className = 'ripple-effect';
-  ripple.style.cssText = `width:${size}px;height:${size}px;left:${e.clientX - size/2}px;top:${e.clientY - size/2}px;`;
-  document.body.appendChild(ripple);
-  setTimeout(() => ripple.remove(), 600);
-});
-
-// Remove transition on page load
-window.addEventListener('pageshow', () => {
-  transition.classList.remove('active');
-});
-</script>
-
-<div class="page-transition" id="pageTransition">
-  <div class="pt-panel"></div>
-  <div class="pt-logo">
-    <span class="pt-logo-icon">🌐</span>
-    <div class="pt-logo-text">Amazing World</div>
-    <div class="pt-logo-bar"></div>
-  </div>
-  
-</div>
 </body>
 </html>
