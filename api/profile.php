@@ -1,7 +1,7 @@
 <?php
 /**
  * API — Profile
- * Amazing World Marketing Corporation Ordering System
+ * Marguax Collection Ordering System
  *
  * GET  /api/profile.php                    → get current user profile
  * POST /api/profile.php { action: 'update', name, email, contact_number, address }
