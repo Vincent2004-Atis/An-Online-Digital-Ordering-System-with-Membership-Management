@@ -1,7 +1,7 @@
 <?php
 /**
  * API — Orders
- * Amazing World Marketing Corporation Ordering System
+ * Marguax Collection Ordering System
  *
  * GET  /api/orders.php                     → my orders (customer) or all orders (admin)
  * GET  /api/orders.php?id=5                → single order with items
