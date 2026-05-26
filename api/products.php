@@ -1,7 +1,7 @@
 <?php
 /**
  * API — Products
- * Amazing World Marketing Corporation Ordering System
+ * Marguax Collection Ordering System
  *
  * GET /api/products.php                    → all products
  * GET /api/products.php?type=member        → member products
@@ -47,7 +47,7 @@ if (!empty($_GET['id'])) {
     // Block member products for non-members
     if ($product['product_type'] === 'member' && !$member) {
         http_response_code(403);
-        echo json_encode(['success' => false, 'message' => 'This product is for members only.']);
+        echo json_encode(['success' => false, 'message' => 'This product is for  .']);
         exit;
     }
 
