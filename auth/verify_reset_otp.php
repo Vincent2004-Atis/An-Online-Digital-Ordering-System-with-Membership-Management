@@ -1,7 +1,7 @@
 <?php
 /**
  * verify_reset_otp.php — Step 2: verify OTP for password reset
- * Place in: /amazingworldmarketingcorp/auth/verify_reset_otp.php
+ * Place in: /Marguax_Collection/auth/verify_reset_otp.php
  */
 require_once '../includes/security.php';
 require_once '../includes/mailer.php';
@@ -16,8 +16,8 @@ if (empty($_SESSION['reset_pending'])) {
 // Already logged in — redirect away
 if (isset($_SESSION['user_id'])) {
     header('Location: ' . ($_SESSION['role'] === 'admin'
-        ? '/amazingworldmarketingcorp/admin/dashboard.php'
-        : '/amazingworldmarketingcorp/customer/products.php'));
+        ? '/Marguax_Collection/admin/dashboard.php'
+        : '/Marguax_Collection/customer/products.php'));
     exit;
 }
 
@@ -49,12 +49,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'resen
         $sent = send_mail(
             $email,
             $pending['name'],
-            'Reset your Amazing World password',
+            'Reset your Marguax Collections password',
             otp_email_html($otp, 'reset', 10)
         );
 
         if ($sent) {
-            $_SESSION['reset_pending']['issued_at'] = time(); // reset timer
+            $_SESSION['reset_pending']['issued_at'] = time();
             $resent = true;
         } else {
             $error = 'Failed to resend. Please try again.';
@@ -74,7 +74,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['otp'])) {
         if (strlen($otp) !== 6) {
             $error = 'Please enter the 6-digit code sent to your email.';
         } elseif (verify_otp_db($db, $email, 'reset', $otp)) {
-            // OTP valid — allow password reset
             rate_limit_clear('reset_verify');
             rate_limit_clear('reset_resend');
 
@@ -104,54 +103,254 @@ $masked     = substr($emailParts[0], 0, 1)
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Verify Reset Code — Amazing World Marketing Corp</title>
+<title>Verify Reset Code — Marguax Collections</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
-*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-body{font-family:'Plus Jakarta Sans','Sora',sans-serif;min-height:100vh;display:flex;justify-content:center;align-items:center;padding:20px;background:linear-gradient(135deg,#0b1f3a 0%,#112d52 50%,#1a4070 100%);color:#fff}
-a{text-decoration:none;color:#2563eb;font-weight:600}
-.card{background:rgba(255,255,255,.10);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border:1px solid rgba(255,255,255,.2);border-radius:20px;box-shadow:0 24px 80px rgba(0,0,0,.4);padding:56px 52px;width:100%;max-width:480px;color:#fff;text-align:center}
-.logo{display:flex;align-items:center;gap:12px;margin-bottom:36px;justify-content:center}
-.logo-img{width:48px;height:48px;border-radius:50%;border:2px solid rgba(255,255,255,.3);object-fit:cover;flex-shrink:0}
-.logo-name{font-weight:800;font-size:1rem;color:#fff;line-height:1.1;text-align:left}
-.logo-sub{font-size:.65rem;color:#f59e0b;font-weight:600;text-transform:uppercase;letter-spacing:.08em}
-.icon{width:64px;height:64px;background:rgba(37,99,235,.2);border:2px solid rgba(37,99,235,.4);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 24px;font-size:28px}
-h1{font-size:1.8rem;font-weight:800;margin-bottom:8px}
-.subtitle{color:rgba(255,255,255,.65);font-size:.9rem;line-height:1.6;margin-bottom:32px}
-.subtitle strong{color:#fff}
+*,*::before,*::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-.otp-group{display:flex;gap:10px;justify-content:center;margin-bottom:24px}
-.otp-group input{width:52px;height:60px;text-align:center;font-size:1.5rem;font-weight:800;border:1.5px solid rgba(255,255,255,.3);border-radius:12px;background:rgba(255,255,255,.12);color:#fff;outline:none;transition:border-color .2s,box-shadow .2s;font-family:monospace}
-.otp-group input:focus{border-color:#2563eb;box-shadow:0 0 0 3px rgba(37,99,235,.2)}
-.otp-group input.filled{border-color:rgba(37,99,235,.6);background:rgba(37,99,235,.15)}
+body {
+    font-family: 'Jost', sans-serif;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    background: linear-gradient(to right, #0e0507 0%, #1a0a0e 25%, #2a0d14 55%, #3d1020 78%, #4a1020 100%);
+    color: #f0e6da;
+}
 
-.btn{display:block;width:100%;padding:14px;background:#2563eb;color:#fff;border:none;border-radius:12px;font-size:1rem;font-weight:700;cursor:pointer;transition:background .2s,transform .1s;font-family:inherit;margin-bottom:12px}
-.btn:hover{background:#1d4ed8}
-.btn:active{transform:scale(.98)}
-.btn-ghost{display:block;width:100%;padding:12px;background:transparent;color:rgba(255,255,255,.7);border:1.5px solid rgba(255,255,255,.2);border-radius:12px;font-size:.9rem;font-weight:600;cursor:pointer;font-family:inherit;transition:background .2s,border-color .2s}
-.btn-ghost:hover{background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.35)}
+/* Radial glow */
+body::after {
+    content: '';
+    position: fixed;
+    top: 0; right: 0;
+    width: 60%; height: 100%;
+    background: radial-gradient(ellipse at 75% 45%, rgba(196,80,100,0.14) 0%, transparent 68%);
+    pointer-events: none;
+    z-index: 0;
+}
 
-.alert{border-radius:12px;padding:12px 16px;font-size:.875rem;margin-bottom:20px;text-align:left}
-.alert-error{background:rgba(255,241,242,.1);border:1px solid rgba(252,165,165,.4);color:#fca5a5}
-.alert-success{background:rgba(220,252,231,.12);border:1px solid rgba(74,222,128,.35);color:#4ade80}
+body::before {
+    content: '';
+    position: fixed;
+    bottom: -80px; left: -80px;
+    width: 360px; height: 360px;
+    border-radius: 50%;
+    background: rgba(196,80,100,0.05);
+    pointer-events: none;
+    z-index: 0;
+}
 
-.divider{height:1px;background:rgba(255,255,255,.15);margin:20px 0}
-.back{font-size:.85rem;color:rgba(255,255,255,.55)}
-.back a{color:rgba(255,255,255,.7)}
-.timer{font-size:.8rem;color:rgba(255,255,255,.5);margin-top:10px}
-.timer span{color:#f59e0b;font-weight:700}
+.card {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    max-width: 460px;
+    background: rgba(255,255,255,0.03);
+    border: .5px solid rgba(196,80,100,0.2);
+    border-radius: 20px;
+    box-shadow: 0 32px 80px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.04);
+    padding: 52px 48px;
+    text-align: center;
+}
+
+/* Brand */
+.brand-logo {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    justify-content: center;
+    margin-bottom: 40px;
+}
+.logo-circle {
+    width: 48px; height: 48px;
+    border-radius: 50%;
+    border: 1.5px solid #c45064;
+    display: flex; align-items: center; justify-content: center;
+    overflow: hidden;
+    background: rgba(196,80,100,0.1);
+    flex-shrink: 0;
+}
+.logo-circle img { width: 100%; height: 100%; object-fit: cover; }
+.logo-fallback {
+    font-family: 'Playfair Display', serif;
+    font-size: 20px; color: #c45064;
+}
+.brand-name {
+    font-family: 'Playfair Display', serif;
+    font-size: 16px; color: #e8d5c4;
+    letter-spacing: .3px; text-align: left; line-height: 1.3;
+}
+.brand-name span {
+    display: block;
+    font-family: 'Jost', sans-serif;
+    font-size: 8px; letter-spacing: 4px;
+    color: #c45064; font-weight: 500;
+    margin-top: 4px; text-transform: uppercase;
+}
+
+/* Icon badge */
+.icon-badge {
+    width: 64px; height: 64px;
+    border-radius: 50%;
+    background: rgba(196,80,100,0.12);
+    border: 1px solid rgba(196,80,100,0.3);
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 24px;
+    font-size: 26px;
+}
+
+h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: 2rem; font-weight: 700;
+    color: #f0e6da;
+    margin-bottom: 10px;
+    line-height: 1.15;
+}
+
+.subtitle {
+    color: #5a4a42;
+    font-size: 14px; font-weight: 300;
+    line-height: 1.8;
+    margin-bottom: 32px;
+}
+.subtitle strong { color: #c45064; font-weight: 500; }
+
+/* Alerts */
+.alert {
+    border-radius: 9px; padding: 12px 16px;
+    font-size: .84rem; margin-bottom: 20px;
+    text-align: left; line-height: 1.6;
+    display: flex; align-items: flex-start; gap: 8px;
+}
+.alert-error   { background: rgba(196,80,100,0.10); border: .5px solid rgba(196,80,100,0.35); color: #e8a0a8; }
+.alert-success { background: rgba(80,160,100,0.08); border: .5px solid rgba(80,160,100,0.25); color: #86c49a; }
+
+/* OTP boxes */
+.otp-group {
+    display: flex; gap: 10px;
+    justify-content: center;
+    margin-bottom: 8px;
+}
+.otp-group input {
+    width: 52px; height: 60px;
+    text-align: center;
+    font-size: 1.5rem; font-weight: 700;
+    font-family: 'Playfair Display', serif;
+    border: .5px solid rgba(196,80,100,0.25);
+    border-radius: 10px;
+    background: rgba(255,255,255,0.03);
+    color: #f0e6da; outline: none;
+    transition: border-color .2s, box-shadow .2s, background .2s;
+    caret-color: #c45064;
+}
+.otp-group input:focus {
+    border-color: #c45064;
+    background: rgba(196,80,100,0.07);
+    box-shadow: 0 0 0 3px rgba(196,80,100,0.12);
+}
+.otp-group input.filled {
+    border-color: rgba(196,80,100,0.5);
+    background: rgba(196,80,100,0.08);
+}
+
+.timer {
+    font-size: 12px; color: #3a2a28;
+    margin-bottom: 24px; font-weight: 300;
+}
+.timer span { color: #c45064; font-weight: 600; }
+
+/* Buttons */
+.btn {
+    display: flex; align-items: center;
+    justify-content: center; gap: 10px;
+    width: 100%; padding: 15px;
+    background: #c45064; color: #fff;
+    border: none; border-radius: 9px;
+    font-size: 12px; font-weight: 500;
+    font-family: 'Jost', sans-serif;
+    letter-spacing: 3px; text-transform: uppercase;
+    cursor: pointer; margin-bottom: 12px;
+    transition: background .2s, transform .1s;
+}
+.btn:hover { background: #a83d53; }
+.btn:active { transform: scale(.98); }
+.btn:disabled {
+    background: rgba(196,80,100,0.25);
+    color: rgba(255,255,255,0.4);
+    cursor: not-allowed;
+}
+.btn svg {
+    width: 15px; height: 15px;
+    stroke: white; fill: none;
+    stroke-width: 2; stroke-linecap: round;
+    stroke-linejoin: round; flex-shrink: 0;
+}
+
+.btn-ghost {
+    display: flex; align-items: center;
+    justify-content: center;
+    width: 100%; padding: 13px;
+    background: transparent;
+    border: .5px solid rgba(196,80,100,0.3);
+    border-radius: 9px;
+    font-size: 12px; font-weight: 500;
+    font-family: 'Jost', sans-serif;
+    letter-spacing: 3px; text-transform: uppercase;
+    color: #7a5060; cursor: pointer;
+    transition: background .2s, border-color .2s, color .2s;
+}
+.btn-ghost:hover {
+    background: rgba(196,80,100,0.07);
+    border-color: rgba(196,80,100,0.5);
+    color: #c45064;
+}
+
+.divider {
+    height: .5px;
+    background: rgba(196,80,100,0.12);
+    margin: 24px 0;
+}
+
+.back {
+    font-size: 13px; color: #3a2a28;
+    font-weight: 300;
+}
+.back a {
+    color: #c45064; font-weight: 500;
+    text-decoration: none;
+    transition: color .2s;
+}
+.back a:hover { color: #e07080; }
+
+@media (max-width: 520px) {
+    .card { padding: 40px 24px; }
+    .otp-group input { width: 44px; height: 54px; font-size: 1.3rem; }
+}
 </style>
 </head>
 <body>
 <div class="card">
-  <div class="logo">
-    <img class="logo-img" src="/amazingworldmarketingcorp/images/logo.png" alt="Logo">
-    <div><div class="logo-name">AMAZING WORLD</div><div class="logo-sub">MARKETING CORPORATION</div></div>
+
+  <div class="brand-logo">
+    <div class="logo-circle">
+      <img src="/Marguax_Collection/images/logo.png" alt="Logo"
+           onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+      <span class="logo-fallback" style="display:none">M</span>
+    </div>
+    <div class="brand-name">
+      Marguax Collections
+      <span>+ Fashion Boutique</span>
+    </div>
   </div>
 
-  <div class="icon">🔒</div>
+  <div class="icon-badge">🔐</div>
   <h1>Enter Reset Code</h1>
   <p class="subtitle">
-    We sent a 6-digit code to<br><strong><?= e($masked) ?></strong><br>
+    We sent a 6-digit code to<br>
+    <strong><?= e($masked) ?></strong><br>
     Enter it below to continue.
   </p>
 
@@ -178,7 +377,13 @@ h1{font-size:1.8rem;font-weight:800;margin-bottom:8px}
 
     <div class="timer">Code expires in <span id="countdown">10:00</span></div>
 
-    <button type="submit" class="btn" style="margin-top:20px" id="verifyBtn" disabled>Verify & Continue</button>
+    <button type="submit" class="btn" id="verifyBtn" disabled>
+      Verify &amp; Continue
+      <svg viewBox="0 0 24 24">
+        <line x1="5" y1="12" x2="19" y2="12"/>
+        <polyline points="12 5 19 12 12 19"/>
+      </svg>
+    </button>
   </form>
 
   <!-- Resend form -->
@@ -190,6 +395,7 @@ h1{font-size:1.8rem;font-weight:800;margin-bottom:8px}
 
   <div class="divider"></div>
   <p class="back">Wrong email? <a href="forgot_password.php">Go back</a></p>
+
 </div>
 
 <script>
@@ -234,13 +440,12 @@ h1{font-size:1.8rem;font-weight:800;margin-bottom:8px}
     });
   });
 
-  // Countdown (10 min TTL, offset by time already elapsed)
+  // Countdown (10 min TTL)
   var ttl  = <?= ($pending['issued_at'] + 600) - time() ?>;
   var el   = document.getElementById('countdown');
 
   function renderTime(s){
-    var m = Math.floor(s/60);
-    var sec = s % 60;
+    var m = Math.floor(s/60), sec = s%60;
     return m + ':' + (sec < 10 ? '0' : '') + sec;
   }
 
@@ -251,7 +456,7 @@ h1{font-size:1.8rem;font-weight:800;margin-bottom:8px}
     if(ttl <= 0){
       clearInterval(tick);
       el.textContent = '0:00';
-      el.style.color = '#fca5a5';
+      el.style.color = '#e8a0a8';
       verifyBtn.disabled = true;
       return;
     }
