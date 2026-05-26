@@ -1,7 +1,7 @@
 <?php
 /**
  * API — Dashboard Stats (Admin only)
- * Amazing World Marketing Corporation Ordering System
+ * Margaux Collectionss Ordering System
  *
  * GET /api/dashboard.php                   → all live stats
  * GET /api/dashboard.php?type=stats        → summary stats only
@@ -106,7 +106,7 @@ if ($type === 'all') {
     ")->fetch_all(MYSQLI_ASSOC);
 }
 
-$response['success']    = true;
+$response['success']      = true;
 $response['generated_at'] = date('Y-m-d H:i:s');
 
 echo json_encode($response);
