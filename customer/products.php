@@ -1,6 +1,6 @@
 <?php
 require_once '../includes/security.php';
-if (!isset($_SESSION['user_id'])) { header('Location: /amazingworldmarketingcorp/auth/login.php'); exit; }
+if (!isset($_SESSION['user_id'])) { header('Location: /Marguax_Collection/auth/login.php'); exit; }
 require_once '../config/database.php';
 $db     = getDB();
 $userId = (int)$_SESSION['user_id'];
@@ -10,20 +10,17 @@ $stmt->bind_param('i', $userId);
 $stmt->execute();
 $user = $stmt->get_result()->fetch_assoc();
 $stmt->close();
-if (!$user) { session_destroy(); header('Location: /amazingworldmarketingcorp/auth/login.php'); exit; }
+if (!$user) { session_destroy(); header('Location: /Marguax_Collection/auth/login.php'); exit; }
 $isMember = ($user['member_status'] === 'member');
 
-// Fetch all categories
 $categories = $db->query("SELECT * FROM categories ORDER BY name")->fetch_all(MYSQLI_ASSOC);
 
 $typeFilter     = $_GET['filter'] ?? 'all';
 $categoryFilter = isset($_GET['category']) ? (int)$_GET['category'] : 0;
 $search         = trim($_GET['search'] ?? '');
 
-// Non-members cannot access member-exclusive filter
 if (!$isMember && $typeFilter === 'member') {
-    header('Location: products.php?filter=loose');
-    exit;
+    header('Location: products.php?filter=loose'); exit;
 }
 
 $where  = ['1=1'];
@@ -39,7 +36,6 @@ if ($categoryFilter > 0) {
     $types   .= 'i';
     $params[] = $categoryFilter;
 }
-
 if (!empty($search)) {
     $where[]  = "(p.product_name LIKE ? OR p.description LIKE ?)";
     $types   .= 'ss';
@@ -47,9 +43,9 @@ if (!empty($search)) {
     $params[] = "%$search%";
 }
 
-$sql  = "SELECT p.*, c.name AS category_name 
-         FROM products p 
-         LEFT JOIN categories c ON p.category_id = c.category_id 
+$sql  = "SELECT p.*, c.name AS category_name
+         FROM products p
+         LEFT JOIN categories c ON p.category_id = c.category_id
          WHERE " . implode(' AND ', $where) . " ORDER BY p.product_name";
 $stmt = $db->prepare($sql);
 if (!empty($params)) { $stmt->bind_param($types, ...$params); }
@@ -62,541 +58,644 @@ $stmt->close();
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Product Catalog — Amazing World Marketing Corp</title>
+<title>Product Catalog — Marguax Collections</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="../css/style.css">
 <style>
-:root {
-  --primary: #2e6ee6;
-  --primary-light: #4a9eff;
-  --amber: #f0a500;
-  --green: #16a34a;
-  --border: #3a5080;
-  --radius: 14px;
-  --shadow: 0 4px 8px rgba(0,0,0,.3);
-  --transition: .25s ease;
+/* ============================================================
+   NUCLEAR OVERRIDE — kills every pink !important from style.css
+   Matches login.php dark burgundy theme exactly
+   ============================================================ */
+
+/* 1. Root canvas — same gradient as login.php */
+html, body {
+  background: linear-gradient(to bottom right, #0e0507 0%, #1a0a0e 30%, #2a0d14 60%, #3d1020 100%) !important;
+  color: #f0e6da !important;
+  font-family: 'Jost', sans-serif !important;
+  min-height: 100vh !important;
 }
-body {
-  font-family: 'Plus Jakarta Sans','Sora',sans-serif;
-  margin: 0;
-  background: #1a2a4a !important;
-  color: #ffffff !important;
-}
+
+/* 2. Kill the pink page-hero */
 .page-hero {
-  background: #243660 !important;
-  color: #ffffff !important;
-  padding: 16px;
-  text-align: center;
-  border-bottom: 1px solid #3a5080;
+  background: transparent !important;
+  border-bottom: 1px solid rgba(196,80,100,.15) !important;
+  color: #f0e6da !important;
+  padding: 72px 40px 56px !important;
+  text-align: center !important;
+  position: relative !important;
 }
-.page-hero h1 { font-size: 1.5rem; margin-bottom: 4px; color: #ffffff; }
-.page-hero p  { font-size: .875rem; margin: 0; color: #8ab0d4; }
-.container { max-width: 100%; margin: auto; padding: 16px 50px; background: #1a2a4a; }
+.page-hero::before {
+  content: '' !important;
+  position: absolute !important;
+  inset: 0 !important;
+  background: radial-gradient(ellipse 80% 70% at 50% -10%, rgba(196,80,100,.13) 0%, transparent 70%) !important;
+  pointer-events: none !important;
+}
+.page-hero h1 {
+  font-family: 'Playfair Display', serif !important;
+  font-size: clamp(2.6rem, 6vw, 4.8rem) !important;
+  font-weight: 700 !important;
+  color: #f0e6da !important;
+  line-height: 1.05 !important;
+  letter-spacing: -.5px !important;
+  margin: 0 0 14px !important;
+  animation: heroIn .8s cubic-bezier(.16,1,.3,1) both !important;
+}
+.page-hero h1 em {
+  font-style: italic !important;
+  color: #c45064 !important;
+}
+.page-hero p {
+  color: #7a6058 !important;
+  font-size: .92rem !important;
+  font-weight: 300 !important;
+  margin: 0 !important;
+  animation: heroIn .8s .12s cubic-bezier(.16,1,.3,1) both !important;
+}
+.page-hero p strong { color: #e8a0a8 !important; font-weight: 500 !important; }
 
-/* ── BANNERS ── */
-.member-banner {
-  display: flex; align-items: center; gap: 12px;
-  padding: 16px 20px; border-radius: var(--radius);
-  background: #1e3360 !important;
-  border: 1px solid #3a5080 !important;
-  transition: all var(--transition);
-  margin-bottom: 24px;
+/* Hero eyebrow pill */
+.hero-eyebrow {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  font-size: .68rem !important;
+  font-weight: 600 !important;
+  letter-spacing: .28em !important;
+  text-transform: uppercase !important;
+  color: #c45064 !important;
+  padding: 6px 20px !important;
+  border: 1px solid rgba(196,80,100,.3) !important;
+  border-radius: 40px !important;
+  margin-bottom: 22px !important;
+  background: rgba(196,80,100,.06) !important;
+  animation: heroIn .7s cubic-bezier(.16,1,.3,1) both !important;
 }
-.member-banner:hover { transform: translateY(-2px); box-shadow: 0 6px 12px rgba(0,0,0,.3) !important; }
-.member-banner-icon { font-size: 2rem; }
-.member-banner-text h4 { margin: 0; font-size: 1rem; color: #ffffff !important; }
-.member-banner-text p  { margin: 2px 0 0; font-size: .875rem; color: #8ab0d4 !important; }
-
-/* ── UPGRADE STRIP ── */
-.upgrade-strip {
-  background: linear-gradient(135deg, #1e3a6e, #0f2040);
-  border: 1px solid #f0a500;
-  border-radius: var(--radius);
-  padding: 20px 24px;
-  display: flex; align-items: center;
-  justify-content: space-between;
-  gap: 16px; flex-wrap: wrap;
-  margin-bottom: 24px;
-}
-.upgrade-strip-left { display: flex; align-items: center; gap: 14px; }
-.upgrade-strip-icon { font-size: 2.4rem; }
-.upgrade-strip-text h4 { margin: 0 0 4px; font-size: 1.05rem; color: #fff; font-weight: 700; }
-.upgrade-strip-text p  { margin: 0; font-size: .83rem; color: #8ab0d4; }
-.upgrade-strip-text p span { color: #f0a500; font-weight: 600; }
-.btn-upgrade {
-  background: linear-gradient(135deg, #f0a500, #d97706);
-  color: #fff !important; border: none; border-radius: 10px;
-  padding: 10px 22px; font-weight: 700; font-size: .88rem;
-  cursor: pointer; text-decoration: none;
-  display: inline-flex; align-items: center; gap: 6px;
-  white-space: nowrap; transition: all var(--transition);
-  box-shadow: 0 4px 12px rgba(240,165,0,.35);
-}
-.btn-upgrade:hover {
-  background: linear-gradient(135deg, #fbbf24, #f59e0b);
-  transform: translateY(-2px);
-  box-shadow: 0 6px 18px rgba(240,165,0,.5);
+.hero-divider {
+  width: 56px !important; height: 1px !important;
+  background: linear-gradient(90deg, transparent, #c45064, transparent) !important;
+  margin: 22px auto 0 !important;
+  animation: heroIn .7s .2s cubic-bezier(.16,1,.3,1) both !important;
 }
 
-/* ── PRODUCT GRID ── */
+/* 3. Container */
+.container {
+  max-width: 1280px !important;
+  margin: 0 auto !important;
+  padding: 0 36px !important;
+  background: transparent !important;
+}
+
+/* 4. Filter section */
+.filter-section {
+  padding: 32px 0 18px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  gap: 10px !important;
+  margin-bottom: 8px !important;
+  animation: fadeUp .6s .3s cubic-bezier(.16,1,.3,1) both !important;
+}
+.filter-bar {
+  display: flex !important;
+  gap: 8px !important;
+  flex-wrap: wrap !important;
+  justify-content: center !important;
+}
+.filter-divider {
+  width: 100% !important;
+  height: 1px !important;
+  background: rgba(196,80,100,.12) !important;
+  margin: 4px 0 !important;
+}
+.filter-tab {
+  padding: 9px 22px !important;
+  border-radius: 40px !important;
+  font-size: .7rem !important;
+  font-weight: 500 !important;
+  letter-spacing: .14em !important;
+  text-transform: uppercase !important;
+  color: #7a6058 !important;
+  background: rgba(255,255,255,.03) !important;
+  border: 1px solid rgba(196,80,100,.12) !important;
+  text-decoration: none !important;
+  display: inline-block !important;
+  transition: color .25s, border-color .25s, background .25s, transform .2s !important;
+  font-family: 'Jost', sans-serif !important;
+  box-shadow: none !important;
+}
+.filter-tab:hover {
+  color: #e8a0a8 !important;
+  border-color: rgba(196,80,100,.4) !important;
+  background: rgba(196,80,100,.06) !important;
+  transform: translateY(-2px) !important;
+  box-shadow: none !important;
+}
+.filter-tab.active {
+  background: #c45064 !important;
+  color: #fff !important;
+  border-color: #c45064 !important;
+  font-weight: 600 !important;
+  box-shadow: 0 6px 18px rgba(196,80,100,.35) !important;
+  transform: translateY(-1px) !important;
+}
+.filter-tab.locked-tab {
+  opacity: .35 !important;
+  cursor: not-allowed !important;
+  color: #5a4a42 !important;
+  background: transparent !important;
+  border-color: rgba(196,80,100,.08) !important;
+}
+.filter-tab.locked-tab:hover {
+  transform: none !important;
+  box-shadow: none !important;
+}
+.filter-bar.type-bar .filter-tab {
+  padding: 10px 26px !important;
+  font-size: .72rem !important;
+}
+
+/* 5. Product grid */
 .product-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-  gap: 10px;
+  display: grid !important;
+  grid-template-columns: repeat(auto-fill, minmax(285px, 1fr)) !important;
+  gap: 20px !important;
+  padding: 28px 0 80px !important;
 }
+
+/* 6. Product card — full dark override */
 .product-card {
-  background: #243660 !important;
-  border: 1px solid #3a5080 !important;
-  border-radius: var(--radius);
-  overflow: hidden;
-  display: flex; flex-direction: column;
-  transition: all var(--transition);
-  position: relative;
+  background: rgba(42,13,20,.7) !important;
+  border: 1px solid rgba(196,80,100,.12) !important;
+  border-radius: 16px !important;
+  overflow: hidden !important;
+  display: flex !important;
+  flex-direction: column !important;
+  position: relative !important;
+  transition: transform .4s cubic-bezier(.16,1,.3,1), border-color .3s, box-shadow .4s !important;
+  animation: cardIn .55s cubic-bezier(.16,1,.3,1) both !important;
+  backdrop-filter: blur(4px) !important;
 }
-.product-card:hover { transform: translateY(-3px); box-shadow: 0 8px 20px rgba(0,0,0,.4) !important; }
-.product-card.locked { border-color: rgba(240,165,0,.35) !important; }
-.product-card.locked:hover { box-shadow: 0 8px 20px rgba(240,165,0,.12) !important; }
+.product-card:hover {
+  transform: translateY(-7px) !important;
+  border-color: rgba(196,80,100,.4) !important;
+  box-shadow: 0 28px 56px rgba(0,0,0,.55), 0 0 0 1px rgba(196,80,100,.15) !important;
+}
+.product-card.locked { opacity: .62 !important; }
 
-.product-img { position: relative; overflow: hidden; height: 260px; }
+/* stagger */
+.product-card:nth-child(1)  { animation-delay:.05s !important }
+.product-card:nth-child(2)  { animation-delay:.10s !important }
+.product-card:nth-child(3)  { animation-delay:.15s !important }
+.product-card:nth-child(4)  { animation-delay:.20s !important }
+.product-card:nth-child(5)  { animation-delay:.25s !important }
+.product-card:nth-child(6)  { animation-delay:.30s !important }
+.product-card:nth-child(7)  { animation-delay:.35s !important }
+.product-card:nth-child(8)  { animation-delay:.40s !important }
+.product-card:nth-child(9)  { animation-delay:.45s !important }
+.product-card:nth-child(10) { animation-delay:.50s !important }
+
+/* 7. Product image */
+.product-img {
+  position: relative !important;
+  height: 272px !important;
+  overflow: hidden !important;
+  background: #1a0a0e !important;
+}
 .product-img img {
-  width: 100%; height: 260px;
-  object-fit: cover; object-position: center top;
-  display: block; border-bottom: 1px solid #3a5080;
-  transition: transform var(--transition);
+  width: 100% !important; height: 100% !important;
+  object-fit: cover !important;
+  display: block !important;
+  border-bottom: none !important;
+  filter: brightness(.92) saturate(.88) !important;
+  transition: transform .65s cubic-bezier(.16,1,.3,1), filter .4s !important;
 }
-.product-card:hover .product-img img { transform: scale(1.08); }
-.product-card.locked .product-img img { filter: blur(4px) brightness(0.5); }
-
-.lock-overlay {
-  position: absolute; inset: 0;
-  display: flex; flex-direction: column;
-  align-items: center; justify-content: center;
-  gap: 10px; background: rgba(10,20,50,.4); z-index: 2;
+.product-card:hover .product-img img {
+  transform: scale(1.07) !important;
+  filter: brightness(1.04) saturate(1.04) !important;
 }
-.lock-icon { font-size: 2.4rem; filter: drop-shadow(0 2px 8px rgba(0,0,0,.7)); }
-.lock-label {
-  background: rgba(240,165,0,.95); color: #fff;
-  font-size: .72rem; font-weight: 800;
-  padding: 4px 14px; border-radius: 20px;
-  letter-spacing: .05em; text-transform: uppercase;
+.product-card.locked .product-img img {
+  filter: blur(5px) brightness(.55) !important;
 }
 
+/* 8. Badges */
 .product-type-badge {
-  position: absolute; top: 10px; left: 10px;
-  background: var(--primary); color: white;
-  font-size: .68rem; font-weight: 700;
-  padding: 3px 9px; border-radius: 20px;
-  box-shadow: 0 2px 6px rgba(0,0,0,.3); z-index: 3;
+  position: absolute !important;
+  top: 12px !important; left: 12px !important;
+  font-size: .62rem !important;
+  font-weight: 600 !important;
+  letter-spacing: .13em !important;
+  text-transform: uppercase !important;
+  padding: 4px 12px !important;
+  border-radius: 20px !important;
+  backdrop-filter: blur(10px) !important;
+  z-index: 3 !important;
+  box-shadow: none !important;
+  animation: none !important;
 }
-.product-type-badge.glow { animation: glow 1.8s infinite alternate; }
-@keyframes glow {
-  0%  { box-shadow: 0 0 6px rgba(255,165,0,.5); }
-  100%{ box-shadow: 0 0 12px rgba(255,165,0,1); }
+.badge-loose, .product-type-badge:not(.badge-member):not(.badge-package) {
+  background: rgba(14,5,7,.75) !important;
+  color: #7a6058 !important;
+  border: 1px solid rgba(196,80,100,.18) !important;
+}
+.badge-member {
+  background: rgba(196,80,100,.18) !important;
+  color: #e8a0a8 !important;
+  border: 1px solid rgba(196,80,100,.45) !important;
+}
+.badge-package {
+  background: rgba(196,80,100,.12) !important;
+  color: #c8788a !important;
+  border: 1px solid rgba(196,80,100,.3) !important;
 }
 
-.product-info { padding: 12px 14px; display: flex; flex-direction: column; gap: 4px; }
-.product-name { font-weight: 600; color: #ffffff !important; font-size: .9rem; }
-.product-desc { font-size: .78rem; color: #8ab0d4 !important; height: 36px; overflow: hidden; }
-.product-price { font-weight: 700; font-size: .9rem; margin-top: 6px; color: #4a9eff !important; }
-.product-card.locked .product-price { filter: blur(5px); user-select: none; pointer-events: none; }
-.category-tag { font-size: .7rem; color: #8ab0d4 !important; margin-bottom: 2px; }
+/* 9. Lock overlay */
+.lock-overlay {
+  position: absolute !important; inset: 0 !important;
+  background: rgba(14,5,7,.82) !important;
+  display: flex !important; flex-direction: column !important;
+  align-items: center !important; justify-content: center !important;
+  gap: 10px !important;
+  backdrop-filter: blur(6px) !important;
+  z-index: 4 !important;
+}
+.lock-icon {
+  font-size: 1.8rem !important;
+  width: 52px !important; height: 52px !important;
+  border: 1px solid rgba(196,80,100,.4) !important;
+  border-radius: 50% !important;
+  display: flex !important; align-items: center !important; justify-content: center !important;
+  background: rgba(196,80,100,.08) !important;
+  filter: none !important;
+  animation: lockGlow 3s ease-in-out infinite !important;
+}
+.lock-label {
+  font-size: .62rem !important;
+  letter-spacing: .18em !important;
+  text-transform: uppercase !important;
+  color: rgba(196,80,100,.7) !important;
+  font-weight: 500 !important;
+  font-family: 'Jost', sans-serif !important;
+  background: transparent !important;
+  padding: 0 !important;
+  border-radius: 0 !important;
+}
 
-/* ── ACTIONS ── */
-.product-actions { display: flex; flex-direction: column; gap: 6px; padding: 0 12px 12px; }
-.qty-control { display: flex; align-items: center; gap: 6px; }
+/* 10. Product info */
+.product-info {
+  padding: 20px 20px 14px !important;
+  flex: 1 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 5px !important;
+  background: transparent !important;
+}
+.product-name {
+  font-family: 'Playfair Display', serif !important;
+  font-size: 1.15rem !important;
+  font-weight: 400 !important;
+  color: #f0e6da !important;
+  line-height: 1.3 !important;
+  transition: color .25s !important;
+}
+.product-card:hover .product-name { color: #e8a0a8 !important; }
+.category-tag {
+  font-size: .67rem !important;
+  color: rgba(196,80,100,.6) !important;
+  letter-spacing: .1em !important;
+  text-transform: uppercase !important;
+  font-weight: 500 !important;
+  margin-bottom: 0 !important;
+}
+.product-desc {
+  font-size: .8rem !important;
+  color: #5a4a42 !important;
+  line-height: 1.65 !important;
+  flex: 1 !important;
+  height: auto !important;
+  overflow: hidden !important;
+  display: -webkit-box !important;
+  -webkit-line-clamp: 3 !important;
+  -webkit-box-orient: vertical !important;
+  margin-top: 4px !important;
+}
+.product-price {
+  font-family: 'Playfair Display', serif !important;
+  font-size: 1.45rem !important;
+  font-weight: 400 !important;
+  color: #c45064 !important;
+  margin-top: 10px !important;
+  filter: none !important;
+  letter-spacing: .02em !important;
+}
+.product-card.locked .product-price {
+  filter: blur(5px) !important;
+  user-select: none !important;
+}
+
+/* 11. Actions */
+.product-actions {
+  padding: 0 20px 18px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 8px !important;
+  background: transparent !important;
+}
+.qty-control {
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+}
 .qty-btn {
-  background: #1a2a4a !important; border: 1px solid #3a5080 !important;
-  color: #ffffff !important; padding: 4px 10px; border-radius: 6px;
-  cursor: pointer; font-weight: 600;
+  width: 34px !important; height: 34px !important;
+  background: rgba(196,80,100,.08) !important;
+  border: 1px solid rgba(196,80,100,.22) !important;
+  color: #c45064 !important;
+  font-size: 1rem !important;
+  border-radius: 8px !important;
+  cursor: pointer !important;
+  display: flex !important; align-items: center !important; justify-content: center !important;
+  transition: background .2s, transform .15s !important;
+  padding: 0 !important;
+  font-family: 'Jost', sans-serif !important;
 }
-.qty-btn:hover { background: #3a5080 !important; }
+.qty-btn:hover {
+  background: #c45064 !important;
+  color: #fff !important;
+  border-color: #c45064 !important;
+  transform: scale(1.1) !important;
+}
 .qty-input {
-  width: 40px; text-align: center;
-  border: 1px solid #3a5080 !important; border-radius: 6px;
-  background: #1a2a4a !important; color: #ffffff !important;
+  width: 46px !important;
+  text-align: center !important;
+  background: rgba(255,255,255,.04) !important;
+  border: 1px solid rgba(196,80,100,.18) !important;
+  color: #f0e6da !important;
+  border-radius: 8px !important;
+  padding: 6px 4px !important;
+  font-size: .88rem !important;
+  font-family: 'Jost', sans-serif !important;
 }
-.btn-full { width: 100%; }
+.qty-input:focus {
+  outline: none !important;
+  border-color: #c45064 !important;
+  box-shadow: 0 0 0 3px rgba(196,80,100,.12) !important;
+}
+
+/* 12. Buttons — full override */
 .btn-primary {
-  background: #2e6ee6 !important; color: white !important; border: none;
-  border-radius: 8px; padding: 8px 12px; font-weight: 600; cursor: pointer;
-  display: flex; align-items: center; justify-content: center; gap: 4px;
-  transition: all var(--transition);
+  display: flex !important; align-items: center !important; justify-content: center !important;
+  width: 100% !important;
+  background: #c45064 !important;
+  color: #fff !important;
+  border: none !important;
+  border-radius: 9px !important;
+  padding: 13px 18px !important;
+  font-family: 'Jost', sans-serif !important;
+  font-size: .74rem !important;
+  font-weight: 600 !important;
+  letter-spacing: .14em !important;
+  text-transform: uppercase !important;
+  cursor: pointer !important;
+  text-decoration: none !important;
+  transition: background .25s, transform .2s, box-shadow .25s !important;
+  gap: 6px !important;
 }
-.btn-primary:hover { background: #4a9eff !important; }
+.btn-primary:hover {
+  background: #a83d53 !important;
+  transform: translateY(-2px) !important;
+  box-shadow: 0 10px 24px rgba(196,80,100,.35) !important;
+}
+.btn-primary:active { transform: scale(.98) !important; }
+
 .btn-outline {
-  background: #1a2a4a !important; color: #8ab0d4 !important;
-  border: 1px solid #3a5080 !important;
-  border-radius: 8px; padding: 8px 12px; cursor: not-allowed;
+  display: flex !important; align-items: center !important; justify-content: center !important;
+  width: 100% !important;
+  background: transparent !important;
+  color: #5a4a42 !important;
+  border: 1px solid rgba(196,80,100,.15) !important;
+  border-radius: 9px !important;
+  padding: 13px 18px !important;
+  font-family: 'Jost', sans-serif !important;
+  font-size: .74rem !important;
+  font-weight: 500 !important;
+  letter-spacing: .12em !important;
+  text-transform: uppercase !important;
+  cursor: not-allowed !important;
 }
-.btn-locked {
-  background: linear-gradient(135deg, #f0a500, #d97706) !important;
-  color: #fff !important; border: none; border-radius: 8px; padding: 8px 12px;
-  font-weight: 700; cursor: pointer;
-  display: flex; align-items: center; justify-content: center; gap: 6px;
-  transition: all var(--transition); font-size: .85rem; text-decoration: none;
+
+.btn-locked, .btn-locked:hover {
+  display: flex !important; align-items: center !important; justify-content: center !important;
+  width: 100% !important;
+  background: transparent !important;
+  color: rgba(196,80,100,.7) !important;
+  border: 1px solid rgba(196,80,100,.25) !important;
+  border-radius: 9px !important;
+  padding: 13px 18px !important;
+  font-family: 'Jost', sans-serif !important;
+  font-size: .72rem !important;
+  font-weight: 500 !important;
+  letter-spacing: .12em !important;
+  text-transform: uppercase !important;
+  cursor: pointer !important;
+  text-decoration: none !important;
+  transition: all .25s !important;
+  gap: 6px !important;
+  box-shadow: none !important;
 }
 .btn-locked:hover {
-  background: linear-gradient(135deg, #fbbf24, #f59e0b) !important;
-  transform: translateY(-1px); box-shadow: 0 4px 12px rgba(240,165,0,.4);
+  background: rgba(196,80,100,.1) !important;
+  color: #e8a0a8 !important;
+  border-color: rgba(196,80,100,.45) !important;
+  transform: translateY(-1px) !important;
 }
 
-/* ── FILTERS ── */
-.filter-bar { display: flex; gap: 6px; flex-wrap: wrap; }
-.filter-tab {
-  padding: 7px 16px; border-radius: 20px; font-size: .82rem; font-weight: 600;
-  color: #8ab0d4 !important; background: #243660 !important;
-  border: 1px solid #3a5080 !important;
-  transition: background 0.50s ease, border-color 0.50s ease, color 0.50s ease, transform 0.25s ease, box-shadow 0.50s ease;
-  text-decoration: none; display: inline-block;
-  text-transform: uppercase; letter-spacing: 0.04em;
-}
-.filter-tab:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0,0,0,0.25);
-}
-.filter-tab.locked-tab {
-  color: #f0a500 !important; border-color: rgba(240,165,0,.4) !important;
-  background: rgba(240,165,0,.07) !important;
-}
-.filter-tab.locked-tab:hover {
-  background: rgba(240,165,0,.15) !important; border-color: #f0a500 !important;
-}
-
-/* ── EMPTY STATE ── */
+/* 13. Empty state */
 .card {
-  background: #243660 !important; border: 1px solid #3a5080 !important;
-  color: #ffffff !important; border-radius: var(--radius);
-  box-shadow: var(--shadow); overflow: hidden;
+  background: rgba(42,13,20,.6) !important;
+  border: 1px solid rgba(196,80,100,.18) !important;
+  color: #f0e6da !important;
+  border-radius: 16px !important;
+  box-shadow: none !important;
 }
-.card h3 { color: #ffffff; }
-.card p  { color: #8ab0d4; }
+.card h3 { color: #f0e6da !important; }
+.card p  { color: #7a6058 !important; }
 
-/* ── HOW TO JOIN ── */
-.how-to-join {
-  background: linear-gradient(135deg, #0d1f3c, #162040);
-  border-top: 1px solid #3a5080;
-  padding: 60px 50px;
+/* 14. Footer */
+footer {
+  background: #09040a !important;
+  color: rgba(240,230,218,.5) !important;
+  padding: 72px 36px 40px !important;
+  border-top: 1px solid rgba(196,80,100,.1) !important;
+  position: relative !important;
 }
-.how-to-join h2 {
-  text-align: center; font-family: 'Sora', sans-serif;
-  font-size: 1.8rem; font-weight: 800; color: #fff; margin-bottom: 8px;
+footer::before {
+  content: '' !important;
+  position: absolute !important;
+  top: 0 !important; left: 0 !important; right: 0 !important; height: 1px !important;
+  background: linear-gradient(90deg, transparent, rgba(196,80,100,.4), transparent) !important;
 }
-.how-to-join .subtitle {
-  text-align: center; color: #8ab0d4; font-size: .9rem;
-  margin: 0 auto 48px; max-width: 500px; line-height: 1.6;
+footer h4 {
+  color: #c45064 !important;
+  font-family: 'Jost', sans-serif !important;
+  font-size: .72rem !important;
+  letter-spacing: .2em !important;
+  text-transform: uppercase !important;
+  font-weight: 500 !important;
+  margin-bottom: 16px !important;
 }
-.steps-track {
-  position: relative; display: flex;
-  justify-content: center; align-items: flex-start;
-  max-width: 900px; margin: 0 auto;
+footer a {
+  color: rgba(240,230,218,.35) !important;
+  text-decoration: none !important;
+  font-family: 'Jost', sans-serif !important;
+  font-size: .82rem !important;
+  font-weight: 300 !important;
+  transition: color .2s, padding-left .2s !important;
 }
-.steps-track::before {
-  content: ''; position: absolute; top: 28px;
-  left: calc(16.66% + 28px); right: calc(16.66% + 28px);
-  height: 3px; background: linear-gradient(90deg, #f0a500, #2e6ee6); z-index: 0;
-}
-.step {
-  flex: 1; display: flex; flex-direction: column;
-  align-items: center; text-align: center;
-  position: relative; z-index: 1; padding: 0 16px;
-}
-.step-number {
-  width: 56px; height: 56px; border-radius: 50%;
-  background: linear-gradient(135deg, #f0a500, #d97706);
-  color: #fff; font-size: 1.4rem; font-weight: 800;
-  display: flex; align-items: center; justify-content: center;
-  margin-bottom: 20px; box-shadow: 0 4px 16px rgba(240,165,0,.5);
-  font-family: 'Sora', sans-serif;
-}
-.step-img-placeholder {
-  width: 100%; max-width: 240px; height: 150px;
-  border-radius: 12px; border: 2px solid #3a5080; margin-bottom: 16px;
-  display: flex; align-items: center; justify-content: center; font-size: 3rem;
-}
-.step:nth-child(1) .step-img-placeholder { background: linear-gradient(135deg,#1e3a6e,#162a56); }
-.step:nth-child(2) .step-img-placeholder { background: linear-gradient(135deg,#2a4a20,#1a3012); }
-.step:nth-child(3) .step-img-placeholder { background: linear-gradient(135deg,#3a2060,#28104a); }
-.step-title { font-size: .95rem; font-weight: 700; color: #fff; margin-bottom: 8px; }
-.step-desc  { font-size: .78rem; color: #8ab0d4; line-height: 1.6; }
-.join-cta { text-align: center; margin-top: 40px; }
-.join-cta p { color: #8ab0d4; font-size: .85rem; margin-bottom: 16px; }
+footer a:hover { color: #e8a0a8 !important; padding-left: 4px !important; }
 
-@media(max-width:768px){
-  .steps-track { flex-direction: column; align-items: center; gap: 32px; }
-  .steps-track::before { display: none; }
-  .how-to-join { padding: 40px 20px; }
-  .upgrade-strip { flex-direction: column; text-align: center; }
-  .upgrade-strip-left { flex-direction: column; text-align: center; }
-  footer > div > div:first-of-type { grid-template-columns: 1fr 1fr !important; }
-  footer > div > div:first-of-type > div:first-child { grid-column: span 2 !important; }
+/* 15. Toast */
+#toast-container {
+  position: fixed !important;
+  bottom: 28px !important; right: 28px !important;
+  z-index: 9999 !important;
+  display: flex !important; flex-direction: column !important; gap: 10px !important;
 }
-/* ── ANIMATED MEMBER BANNER ── */
-.member-banner {
-  display: flex; align-items: center; gap: 16px;
-  padding: 18px 28px; border-radius: 16px;
-  background: linear-gradient(135deg, #1e3a6e 0%, #0f2040 100%) !important;
-  border: 1px solid rgba(74, 158, 255, 0.3) !important;
-  transition: all 0.4s ease;
-  margin-bottom: 28px;
-  position: relative; overflow: hidden;
-  box-shadow: 0 4px 20px rgba(46, 110, 230, 0.2);
+.toast {
+  background: #2a0d14 !important;
+  border: 1px solid rgba(196,80,100,.3) !important;
+  color: #f0e6da !important;
+  border-radius: 12px !important;
+  padding: 14px 18px !important;
+  font-family: 'Jost', sans-serif !important;
+  font-size: .84rem !important;
+  min-width: 240px !important;
+  animation: toastIn .35s cubic-bezier(.34,1.56,.64,1) both !important;
+  box-shadow: 0 16px 40px rgba(0,0,0,.6) !important;
 }
-.member-banner::before {
-  content: '';
-  position: absolute; top: 0; left: -100%;
-  width: 60%; height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(74,158,255,0.08), transparent);
-  animation: bannerShine 3s infinite;
-}
-@keyframes bannerShine {
-  0%   { left: -100%; }
-  100% { left: 200%; }
-}
-.member-banner:hover {
-  transform: translateY(-2px);
-  border-color: rgba(74,158,255,0.6) !important;
-  box-shadow: 0 8px 30px rgba(46,110,230,0.35) !important;
-}
-.member-banner-icon { font-size: 2.2rem; animation: float 3s ease-in-out infinite; }
-@keyframes float {
-  0%,100% { transform: translateY(0); }
-  50%      { transform: translateY(-5px); }
-}
-.member-banner-text h4 { margin: 0; font-size: 1.05rem; color: #ffffff !important; font-weight: 700; }
-.member-banner-text p  { margin: 3px 0 0; font-size: .85rem; color: #8ab0d4 !important; }
+.toast.error { border-color: rgba(196,80,100,.6) !important; }
 
-/* ── FILTER SECTION WRAPPER ── */
-.filter-section {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 28px;
+/* 16. Ripple */
+.ripple-effect {
+  position: fixed !important;
+  border-radius: 50% !important;
+  background: rgba(196,80,100,.12) !important;
+  transform: scale(0) !important;
+  animation: rippleOut .6s ease-out forwards !important;
+  pointer-events: none !important;
+  z-index: 99999 !important;
 }
 
-/* ── FILTER BAR ── */
-.filter-bar {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-  justify-content: center;
-}
-
-/* ── FILTER TABS ── */
-.filter-tab {
-  padding: 8px 20px;
-  border-radius: 25px;
-  font-size: .8rem;
-  font-weight: 700;
-  color: #8ab0d4 !important;
-  background: #1e3060 !important;
-  border: 1.5px solid #3a5080 !important;
-  transition: all 0.3s ease;
-  text-decoration: none;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  position: relative;
-  overflow: hidden;
-}
-.filter-tab::before {
-  content: '';
-  position: absolute; inset: 0;
-  background: linear-gradient(135deg, rgba(74,158,255,0.15), transparent);
-  opacity: 0;
-  transition: opacity 0.3s ease;
-}
-.filter-tab:hover {
-  color: #ffffff !important;
-  border-color: #4a9eff !important;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 14px rgba(46,110,230,0.35);
-}
-.filter-tab:hover::before { opacity: 1; }
-
-/* ACTIVE STATE */
-.filter-tab.active {
-  background: linear-gradient(135deg, #2e6ee6, #1a4ab0) !important;
-  color: #ffffff !important;
-  border-color: #4a9eff !important;
-  box-shadow: 0 4px 16px rgba(46,110,230,0.5);
-  transform: translateY(-1px);
-}
-
-/* TYPE FILTER TABS (top row) — bigger */
-.filter-bar.type-bar .filter-tab {
-  padding: 10px 24px;
-  font-size: .85rem;
-  border-radius: 30px;
-}
-.filter-bar.type-bar .filter-tab.active {
-  background: linear-gradient(135deg, #f0a500, #d97706) !important;
-  border-color: #f0a500 !important;
-  box-shadow: 0 4px 18px rgba(240,165,0,0.45);
-}
-.filter-bar.type-bar .filter-tab:hover:not(.active) {
-  border-color: #f0a500 !important;
-  color: #f0a500 !important;
-  box-shadow: 0 4px 14px rgba(240,165,0,0.2);
-}
-
-/* LOCKED TAB */
-.filter-tab.locked-tab {
-  color: #f0a500 !important;
-  border-color: rgba(240,165,0,.35) !important;
-  background: rgba(240,165,0,.07) !important;
-}
-.filter-tab.locked-tab:hover {
-  background: rgba(240,165,0,.15) !important;
-  border-color: #f0a500 !important;
-}
-
-/* DIVIDER between type bar and category bar */
-.filter-divider {
-  width: 100%;
-  height: 1px;
-  background: linear-gradient(90deg, transparent, #3a5080, transparent);
-  margin: 2px 0;
-}
-
-/* ── PAGE TRANSITION ── */
+/* 17. Page transition */
 .page-transition {
-  position: fixed; inset: 0; z-index: 99999;
-  pointer-events: none;
-  display: flex; align-items: center; justify-content: center;
+  position: fixed !important; inset: 0 !important;
+  z-index: 99998 !important;
+  pointer-events: none !important;
+  display: flex !important;
+  align-items: center !important; justify-content: center !important;
 }
 .pt-panel {
-  position: absolute; inset: 0;
-  background: linear-gradient(135deg, #0b1f3a, #2563eb);
-  transform: scaleY(0); transform-origin: bottom;
-  transition: transform .5s cubic-bezier(.77,0,.18,1);
+  position: absolute !important; inset: 0 !important;
+  background: linear-gradient(135deg, #0e0507, #2a0d14) !important;
+  transform: scaleY(0) !important;
+  transform-origin: bottom !important;
+  transition: transform .5s cubic-bezier(.77,0,.18,1) !important;
 }
 .pt-logo {
-  position: relative; z-index: 2;
-  opacity: 0; transform: scale(.5);
-  transition: all .4s ease .2s; text-align: center;
-}
-.pt-logo-icon {
-  font-size: 3rem; display: block; margin-bottom: 8px;
-  animation: ptSpin 1s linear infinite;
+  position: relative !important; z-index: 2 !important;
+  opacity: 0 !important; transform: scale(.5) !important;
+  transition: all .4s ease .2s !important;
+  text-align: center !important;
 }
 .pt-logo-text {
-  font-family: 'Sora', sans-serif; font-weight: 800;
-  font-size: 1rem; color: #fff;
-  letter-spacing: .1em; text-transform: uppercase;
+  font-family: 'Playfair Display', serif !important;
+  font-size: 1.6rem !important;
+  color: #e8a0a8 !important;
+  letter-spacing: .15em !important;
+  font-weight: 400 !important;
 }
 .pt-logo-bar {
-  width: 0; height: 3px;
-  background: linear-gradient(90deg, #f59e0b, #f97316);
-  border-radius: 2px; margin: 10px auto 0;
-  transition: width .5s ease .3s;
+  width: 0 !important; height: 1px !important;
+  background: linear-gradient(90deg, transparent, #c45064, transparent) !important;
+  margin: 12px auto 0 !important;
+  transition: width .5s ease .3s !important;
 }
-.page-transition.active .pt-panel  { transform: scaleY(1); }
-.page-transition.active .pt-logo   { opacity: 1; transform: scale(1); }
-.page-transition.active .pt-logo-bar { width: 120px; }
-@keyframes ptSpin {
-  0%   { transform: rotate(0deg) scale(1); }
-  50%  { transform: rotate(180deg) scale(1.2); }
-  100% { transform: rotate(360deg) scale(1); }
+.page-transition.active .pt-panel  { transform: scaleY(1) !important; }
+.page-transition.active .pt-logo   { opacity: 1 !important; transform: scale(1) !important; }
+.page-transition.active .pt-logo-bar { width: 120px !important; }
+
+/* 18. Keyframes */
+@keyframes heroIn  { from { opacity:0; transform:translateY(18px); } to { opacity:1; transform:translateY(0); } }
+@keyframes fadeUp  { from { opacity:0; transform:translateY(16px); } to { opacity:1; transform:translateY(0); } }
+@keyframes cardIn  { from { opacity:0; transform:translateY(32px) scale(.96); } to { opacity:1; transform:translateY(0) scale(1); } }
+@keyframes toastIn { from { opacity:0; transform:translateX(20px); } to { opacity:1; transform:translateX(0); } }
+@keyframes rippleOut { to { transform:scale(8); opacity:0; } }
+@keyframes lockGlow {
+  0%,100% { box-shadow:0 0 0 0 rgba(196,80,100,.3); }
+  50%      { box-shadow:0 0 0 8px rgba(196,80,100,0); }
 }
-.ripple-effect {
-  position: fixed; border-radius: 50%;
-  background: rgba(37,99,235,.25); transform: scale(0);
-  animation: rippleOut .6s ease-out forwards;
-  pointer-events: none; z-index: 9998;
+
+/* 19. Mobile */
+@media(max-width:768px){
+  .product-grid { grid-template-columns:1fr 1fr !important; gap:12px !important; }
+  .page-hero { padding:48px 20px 40px !important; }
+  .container { padding:0 16px !important; }
+  .filter-tab { font-size:.62rem !important; padding:8px 14px !important; }
 }
-@keyframes rippleOut { to { transform: scale(8); opacity: 0; } }
+@media(max-width:480px){
+  .product-grid { grid-template-columns:1fr !important; }
+}
 </style>
 </head>
 <body>
 <?php include '../includes/navbar.php'; ?>
 
 <?php
-  $heroTitle = 'PRODUCTS';
-  $heroDesc  = 'Browse our full range of <span style="color:#f0a500;font-weight:700;">Products</span> from Amazing World Marketing Corporation';
-  if ($typeFilter === 'member')  { $heroTitle = 'EXCLUSIVE MEMBER'; $heroDesc = 'Browse exclusive products available only to <span style="color:#f0a500;font-weight:700;">Members</span>'; }
-  if ($typeFilter === 'package') { $heroTitle = 'PACKAGES';         $heroDesc = 'Choose a <span style="color:#f0a500;font-weight:700;">Package</span> that fits your lifestyle and budget'; }
+  $heroTitle  = 'Our';
+  $heroItalic = 'Collection';
+  $heroSub    = 'Discover every product in the Marguax Collections range';
+  if ($typeFilter==='member')  { $heroTitle='Member';  $heroItalic='Exclusives'; $heroSub='Curated products available only to our valued members'; }
+  if ($typeFilter==='package') { $heroTitle='Curated'; $heroItalic='Packages';   $heroSub='Choose the package that fits your lifestyle'; }
+  if ($typeFilter==='loose')   { $heroTitle='Loose';   $heroItalic='Products';   $heroSub='Individual pieces available for every shopper'; }
 ?>
-<div class="page-hero" style="padding: 40px 50px; text-align: center;">
-  <span class="btn-upgrade" style="font-size:1rem;padding:14px 36px;display:inline-flex;margin-bottom:24px;cursor:default;">
-    <?= $heroTitle ?>
-  </span>
-  <?php if (!$isMember && $typeFilter !== 'member' && $typeFilter !== 'package'): ?>
-    <p style="color:#8ab0d4;font-size:1rem;margin:0 0 6px;">
-      You can only order <span style="color:#f0a500;font-weight:700;">Loose products</span>.
-    </p>
-    <p style="color:#8ab0d4;font-size:1rem;margin:0;">
-      <span style="color:#f0a500;font-weight:700;">Packages</span> and 
-      <span style="color:#f0a500;font-weight:700;">Member Exclusives</span> are locked — become a member to unlock them!
-    </p>
-  <?php else: ?>
-    <p style="color:#8ab0d4;font-size:1rem;margin:0;"><?= $heroDesc ?></p>
-  <?php endif; ?>
+
+<div class="page-hero">
+  <div class="hero-eyebrow">Marguax Collections</div>
+  <h1><?= $heroTitle ?> <em><?= $heroItalic ?></em></h1>
+ 
+  <div class="hero-divider"></div>
 </div>
 
-<div class="container section">
+<div class="container">
 
- 
 
- <div class="filter-section">
-  <!-- Type Filter (top row) -->
-  <div class="filter-bar type-bar">
-    <a href="products.php" 
-       class="filter-tab <?= ($typeFilter === 'all' || $typeFilter === '') ? 'active' : '' ?>">
-       ALL CATEGORIES
-    </a>
-    <a href="products.php?filter=loose" 
-       class="filter-tab <?= $typeFilter === 'loose' ? 'active' : '' ?>">
-       LOOSE
-    </a>
-    <?php if ($isMember): ?>
-      <a href="products.php?filter=member"
-         class="filter-tab <?= $typeFilter === 'member' ? 'active' : '' ?>">
-         MEMBER EXCLUSIVE
+    <div class="filter-divider"></div>
+
+    <div class="filter-bar">
+      <?php foreach ($categories as $cat): ?>
+      <a href="products.php?filter=<?= urlencode($typeFilter) ?>&category=<?= $cat['category_id'] ?>"
+         class="filter-tab <?= $categoryFilter===$cat['category_id'] ? 'active' : '' ?>">
+        <?= htmlspecialchars($cat['name']) ?>
       </a>
-    <?php else: ?>
-      <a href="#" class="filter-tab locked-tab"> MEMBER EXCLUSIVE</a>
-    <?php endif; ?>
-  </div>
-
-  <div class="filter-divider"></div>
-
-  <!-- Category Filter (bottom row) -->
-  <div class="filter-bar">
-    <?php foreach ($categories as $cat): ?>
-    <a href="products.php?filter=<?= urlencode($typeFilter) ?>&category=<?= $cat['category_id'] ?>"
-       class="filter-tab <?= $categoryFilter === $cat['category_id'] ? 'active' : '' ?>">
-      <?= htmlspecialchars($cat['name']) ?>
-    </a>
-    <?php endforeach; ?>
-          </div>
-        </div>
-      </div>
+      <?php endforeach; ?>
     </div>
   </div>
 
   <?php if (empty($products)): ?>
-  <div class="card" style="text-align:center;padding:60px 24px;">
-    <div style="font-size:3rem;margin-bottom:16px;">🔍</div>
-    <h3>No products found</h3>
-    <p>Try adjusting your filters or search terms.</p>
-    <a href="products.php" class="btn btn-primary mt-16" style="display:inline-flex;margin-top:16px;">Clear Filters</a>
+  <div class="card" style="text-align:center;padding:70px 24px;">
+    <div style="font-size:2.4rem;margin-bottom:18px;opacity:.25;">◆</div>
+    <h3 style="font-family:'Playfair Display',serif;font-size:1.9rem;font-weight:400;margin-bottom:10px;">Nothing found</h3>
+    <p style="margin-bottom:26px;">Try adjusting your filters or search terms.</p>
+    <a href="products.php" class="btn-primary" style="display:inline-flex;width:auto;padding:13px 40px;">Clear Filters</a>
   </div>
   <?php else: ?>
   <div class="product-grid">
     <?php foreach ($products as $p):
-      $typeLabel = match($p['product_type']) {
-        'member'  => 'Member Exclusive',
-        'package' => 'Package',
-        default   => 'Loose'
-      };
-      $typeClass = match($p['product_type']) {
-        'member'  => 'badge-member glow',
-        'package' => 'badge-package',
-        default   => 'badge-loose'
-      };
-      $isLocked = !$isMember && $p['product_type'] !== 'loose';
+      $typeLabel = match($p['product_type']) { 'member'=>'Member Exclusive','package'=>'Package',default=>'Loose' };
+      $typeClass = match($p['product_type']) { 'member'=>'badge-member','package'=>'badge-package',default=>'badge-loose' };
+      $isLocked  = !$isMember && $p['product_type'] !== 'loose';
     ?>
     <div class="product-card <?= $isLocked ? 'locked' : '' ?>">
       <div class="product-img">
@@ -605,9 +704,9 @@ body {
              onerror="this.src='../images/product-placeholder.jpg'">
         <span class="product-type-badge <?= $typeClass ?>"><?= $typeLabel ?></span>
         <?php if (!$isLocked && $p['stock'] <= 10 && $p['stock'] > 0): ?>
-          <span class="product-type-badge glow" style="top:10px;right:10px;left:auto;background:rgba(239,68,68,.9);color:#fff;">Low Stock</span>
+          <span class="product-type-badge" style="top:12px;right:12px;left:auto;background:rgba(196,80,100,.18)!important;color:#e8a0a8!important;border:1px solid rgba(196,80,100,.45)!important;animation:none!important;">Low Stock</span>
         <?php elseif (!$isLocked && $p['stock'] == 0): ?>
-          <span class="product-type-badge" style="top:10px;right:10px;left:auto;background:rgba(100,116,139,.9);color:#fff;">Out of Stock</span>
+          <span class="product-type-badge" style="top:12px;right:12px;left:auto;background:rgba(42,13,20,.7)!important;color:#5a4a42!important;border:1px solid rgba(196,80,100,.1)!important;animation:none!important;">Sold Out</span>
         <?php endif; ?>
         <?php if ($isLocked): ?>
         <div class="lock-overlay">
@@ -620,39 +719,34 @@ body {
       <div class="product-info">
         <div class="product-name"><?= htmlspecialchars($p['product_name']) ?></div>
         <?php if (!empty($p['category_name'])): ?>
-        <div class="category-tag">🏷️ <?= htmlspecialchars($p['category_name']) ?></div>
+        <div class="category-tag"><?= htmlspecialchars($p['category_name']) ?></div>
         <?php endif; ?>
         <div class="product-desc"><?= htmlspecialchars($p['description']) ?></div>
-        <div class="product-price">
-          <?= $isLocked ? '₱•••••' : '₱' . number_format($p['price'], 2) ?>
-        </div>
+        <div class="product-price"><?= $isLocked ? '₱ · · · · ·' : '₱ '.number_format($p['price'],2) ?></div>
       </div>
 
       <?php if ($isLocked): ?>
       <div class="product-actions">
-        <a href="#how-to-join" class="btn-locked btn-full">🔒 Unlock — Become a Member</a>
+        <a href="#how-to-join" class="btn-locked">✦ Unlock — Become a Member</a>
       </div>
-
       <?php elseif ($p['stock'] > 0): ?>
       <div class="product-actions">
         <div class="qty-control">
           <button class="qty-btn" onclick="changeQty(<?= $p['product_id'] ?>, -1)">−</button>
           <input type="number" class="qty-input" id="qty-<?= $p['product_id'] ?>" value="1" min="1" max="<?= $p['stock'] ?>">
           <button class="qty-btn" onclick="changeQty(<?= $p['product_id'] ?>, 1)">+</button>
-          <span style="font-size:.75rem;color:#8ab0d4;">/ <?= $p['stock'] ?> left</span>
+          <span style="font-size:.7rem;color:#5a4a42;">/ <?= $p['stock'] ?> left</span>
         </div>
-        <button class="btn btn-primary btn-full"
+        <button class="btn-primary"
                 onclick="addToCart(<?= $p['product_id'] ?>, '<?= htmlspecialchars(addslashes($p['product_name'])) ?>', <?= $p['price'] ?>)">
-          🛒 Add to Cart
+          Add to Cart
         </button>
       </div>
-
       <?php else: ?>
       <div class="product-actions">
-        <button class="btn btn-outline btn-full" disabled>Out of Stock</button>
+        <button class="btn-outline" disabled>Out of Stock</button>
       </div>
       <?php endif; ?>
-
     </div>
     <?php endforeach; ?>
   </div>
@@ -660,108 +754,72 @@ body {
 
 </div>
 
-<?php if (!$isMember): ?>
-<!-- ── HOW TO BECOME A MEMBER ── -->
-<div class="how-to-join" id="how-to-join">
-  <h2>3 Simple Steps to Get Started</h2>
-  <p class="subtitle">Becoming a member is quick and easy. Follow these three steps and start enjoying exclusive benefits.</p>
-
-  <div class="steps-track">
-    <div class="step">
-      <div class="step-number">1</div>
-      <div class="step-img-placeholder">🎤</div>
-      <div class="step-title">Attend ABOP</div>
-      <div class="step-desc">Join our Amazing Business Opportunity Presentation (ABOP). Talk to our distributors and learn about the business opportunity.</div>
-    </div>
-    <div class="step">
-      <div class="step-number">2</div>
-      <div class="step-img-placeholder">📦</div>
-      <div class="step-title">Get Your Package</div>
-      <div class="step-desc">Choose the product package that fits your lifestyle and budget. From Silver to Diamond — there's a package for everyone.</div>
-    </div>
-    <div class="step">
-      <div class="step-number">3</div>
-      <div class="step-img-placeholder">✅</div>
-      <div class="step-title">Sign Up &amp; Create Account</div>
-      <div class="step-desc">Register on our ordering system. Get your member account, start ordering products, and enjoy exclusive member discounts.</div>
-    </div>
-  </div>
-
-  <div class="join-cta">
-    <p>Ready to unlock Packages and exclusive member pricing?</p>
-    <a href="/amazingworldmarketingcorp/auth/register.php" class="btn-upgrade" style="display:inline-flex;font-size:.95rem;padding:12px 28px;">
-       Register &amp; Become a Member
-    </a>
-  </div>
-</div>
-<?php endif; ?>
-
 <!-- FOOTER -->
-<footer style="background:#060f1c;color:rgba(255,255,255,.6);padding:60px 24px 32px">
-  <div style="max-width:1200px;margin:auto">
-    <div style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:40px;margin-bottom:48px">
+<footer>
+  <div style="max-width:1200px;margin:auto;">
+    <div style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:48px;margin-bottom:52px;">
       <div>
-        <img src="../images/logo.png" alt="AWMC" onerror="this.style.display='none'" style="width:52px;height:52px;border-radius:50%;border:2px solid rgba(255,255,255,.2);object-fit:cover;margin-bottom:14px;display:block">
-        <p style="font-size:.875rem;line-height:1.7;max-width:280px;color:rgba(255,255,255,.6)">Amazing World Marketing Corporation — bringing premium Ardeur de France products and wellness solutions to Filipino families.</p>
-        <div style="display:flex;gap:10px;margin-top:16px">
-          <a href="https://facebook.com/amazingworldmktg" style="width:36px;height:36px;border-radius:8px;background:rgba(255,255,255,.08);display:flex;align-items:center;justify-content:center;font-size:1rem;text-decoration:none" onmouseover="this.style.background='rgba(255,255,255,.16)'" onmouseout="this.style.background='rgba(255,255,255,.08)'">📘</a>
-          <a href="#" style="width:36px;height:36px;border-radius:8px;background:rgba(255,255,255,.08);display:flex;align-items:center;justify-content:center;font-size:1rem;text-decoration:none" onmouseover="this.style.background='rgba(255,255,255,.16)'" onmouseout="this.style.background='rgba(255,255,255,.08)'">📸</a>
-          <a href="#" style="width:36px;height:36px;border-radius:8px;background:rgba(255,255,255,.08);display:flex;align-items:center;justify-content:center;font-size:1rem;text-decoration:none" onmouseover="this.style.background='rgba(255,255,255,.16)'" onmouseout="this.style.background='rgba(255,255,255,.08)'">🐦</a>
+        <img src="../images/logo.png" alt="Marguax" onerror="this.style.display='none'"
+             style="width:54px;height:54px;border-radius:50%;border:1px solid rgba(196,80,100,.3);object-fit:cover;margin-bottom:18px;display:block;">
+        <p style="font-size:.82rem;line-height:1.85;max-width:270px;color:rgba(240,230,218,.35);font-family:'Jost',sans-serif;font-weight:300;">
+          Marguax Collections — bringing premium Ardeur de France products and wellness solutions to Filipino families.
+        </p>
+        <div style="display:flex;gap:10px;margin-top:20px;">
+          <?php foreach(['https://facebook.com/Marguaxworldmktg'=>'📘','#'=>'📸','#'=>'🐦'] as $href=>$icon): ?>
+          <a href="<?= $href ?>"
+             style="width:36px;height:36px;border-radius:8px;background:rgba(196,80,100,.07);border:1px solid rgba(196,80,100,.18);display:flex;align-items:center;justify-content:center;font-size:.88rem;text-decoration:none;transition:background .2s,transform .2s;padding:0!important;"
+             onmouseover="this.style.background='rgba(196,80,100,.18)';this.style.transform='translateY(-2px)'"
+             onmouseout="this.style.background='rgba(196,80,100,.07)';this.style.transform=''"><?= $icon ?></a>
+          <?php endforeach; ?>
         </div>
       </div>
       <div>
-        <h4 style="font-family:'Sora',sans-serif;font-weight:700;color:#fff;margin-bottom:16px;font-size:.9rem">Products</h4>
-        <a href="products.php?category=male-scents"     style="display:block;font-size:.85rem;margin-bottom:10px;color:rgba(255,255,255,.5);text-decoration:none" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='rgba(255,255,255,.5)'">MALE SCENTS</a>
-        <a href="products.php?category=female-scents"   style="display:block;font-size:.85rem;margin-bottom:10px;color:rgba(255,255,255,.5);text-decoration:none" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='rgba(255,255,255,.5)'">FEMALE SCENTS</a>
-        <a href="products.php?category=health-products" style="display:block;font-size:.85rem;margin-bottom:10px;color:rgba(255,255,255,.5);text-decoration:none" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='rgba(255,255,255,.5)'">HEALTH</a>
-        <a href="products.php?category=boosters"        style="display:block;font-size:.85rem;margin-bottom:10px;color:rgba(255,255,255,.5);text-decoration:none" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='rgba(255,255,255,.5)'">WELNESS BOOSTERS</a>
-        <a href="products.php?category=soaps"           style="display:block;font-size:.85rem;margin-bottom:10px;color:rgba(255,255,255,.5);text-decoration:none" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='rgba(255,255,255,.5)'">SOAPS &amp; OILS</a>
+        <h4>Products</h4>
+        <?php foreach([['male-scents','Male Scents'],['female-scents','Female Scents'],['health-products','Health'],['boosters','Wellness Boosters'],['soaps','Soaps & Oils']] as [$s,$l]): ?>
+        <a href="products.php?category=<?= $s ?>" style="display:block;margin-bottom:10px;"><?= $l ?></a>
+        <?php endforeach; ?>
       </div>
       <div>
-        <h4 style="font-family:'Sora',sans-serif;font-weight:700;color:#fff;margin-bottom:16px;font-size:.9rem">Membership</h4>
-        <a href="products.php?category=packages&tier=silver"  style="display:block;font-size:.85rem;margin-bottom:10px;color:rgba(255,255,255,.5);text-decoration:none" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='rgba(255,255,255,.5)'">Silver Package</a>
-        <a href="products.php?category=packages&tier=gold"    style="display:block;font-size:.85rem;margin-bottom:10px;color:rgba(255,255,255,.5);text-decoration:none" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='rgba(255,255,255,.5)'">Gold Package</a>
-        <a href="products.php?category=packages&tier=ruby"    style="display:block;font-size:.85rem;margin-bottom:10px;color:rgba(255,255,255,.5);text-decoration:none" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='rgba(255,255,255,.5)'">Ruby Package</a>
-        <a href="products.php?category=packages&tier=emerald" style="display:block;font-size:.85rem;margin-bottom:10px;color:rgba(255,255,255,.5);text-decoration:none" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='rgba(255,255,255,.5)'">Emerald Package</a>
-        <a href="products.php?category=packages&tier=diamond" style="display:block;font-size:.85rem;margin-bottom:10px;color:rgba(255,255,255,.5);text-decoration:none" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='rgba(255,255,255,.5)'">Diamond Package</a>
+        <h4>Membership</h4>
+        <?php foreach(['Silver','Gold','Ruby','Emerald','Diamond'] as $t): ?>
+        <a href="products.php?filter=package&tier=<?= strtolower($t) ?>" style="display:block;margin-bottom:10px;"><?= $t ?> Package</a>
+        <?php endforeach; ?>
       </div>
       <div>
-        <h4 style="font-family:'Sora',sans-serif;font-weight:700;color:#fff;margin-bottom:16px;font-size:.9rem">Company</h4>
-        <a href="../index.php#how-to-join" style="display:block;font-size:.85rem;margin-bottom:10px;color:rgba(255,255,255,.5);text-decoration:none" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='rgba(255,255,255,.5)'">How to Join</a>
-        <a href="../index.php#membership"  style="display:block;font-size:.85rem;margin-bottom:10px;color:rgba(255,255,255,.5);text-decoration:none" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='rgba(255,255,255,.5)'">Benefits</a>
-        <a href="../auth/login.php"        style="display:block;font-size:.85rem;margin-bottom:10px;color:rgba(255,255,255,.5);text-decoration:none" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='rgba(255,255,255,.5)'">Login</a>
-        <a href="../auth/register.php"     style="display:block;font-size:.85rem;margin-bottom:10px;color:rgba(255,255,255,.5);text-decoration:none" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='rgba(255,255,255,.5)'">Register</a>
-        <a href="https://www.awmc.io"      style="display:block;font-size:.85rem;margin-bottom:10px;color:rgba(255,255,255,.5);text-decoration:none" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='rgba(255,255,255,.5)'">www.awmc.io</a>
+        <h4>Company</h4>
+        <a href="../index.php#how-to-join" style="display:block;margin-bottom:10px;">How to Join</a>
+        <a href="../index.php#membership"  style="display:block;margin-bottom:10px;">Benefits</a>
+        <a href="../auth/login.php"        style="display:block;margin-bottom:10px;">Login</a>
+        <a href="../auth/register.php"     style="display:block;margin-bottom:10px;">Register</a>
+        <a href="https://www.awmc.io"      style="display:block;margin-bottom:10px;">www.awmc.io</a>
       </div>
     </div>
-    <div style="border-top:1px solid rgba(255,255,255,.08);padding-top:24px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;font-size:.8rem">
-      <span>© 2026 Amazing World Marketing Corporation. All rights reserved.</span>
-      <span>🌐 www.awmc.io | 📘 amazingworldmktg</span>
+    <div style="border-top:1px solid rgba(196,80,100,.1);padding-top:26px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;font-size:.75rem;color:rgba(240,230,218,.2);font-family:'Jost',sans-serif;">
+      <span>© 2026 Marguax Collections. All rights reserved.</span>
+      <span>🌐 www.awmc.io · 📘 Marguaxworldmktg</span>
     </div>
   </div>
 </footer>
 
-<!-- PAGE TRANSITION OVERLAY -->
+<!-- PAGE TRANSITION -->
 <div class="page-transition" id="pageTransition">
   <div class="pt-panel"></div>
   <div class="pt-logo">
-    <span class="pt-logo-icon">🌐</span>
-    <div class="pt-logo-text">Amazing World</div>
+    <div class="pt-logo-text">Marguax Collections</div>
     <div class="pt-logo-bar"></div>
   </div>
 </div>
-
 <div id="toast-container"></div>
+
 <script>
 function changeQty(id, delta) {
   const input = document.getElementById('qty-' + id);
   let val = parseInt(input.value) + delta;
-  val = Math.max(1, Math.min(val, parseInt(input.max)));
-  input.value = val;
+  input.value = Math.max(1, Math.min(val, parseInt(input.max)));
 }
 function addToCart(productId, name, price) {
   const qty = parseInt(document.getElementById('qty-' + productId).value) || 1;
-  fetch('/amazingworldmarketingcorp/customer/cart_action.php', {
+  fetch('/Marguax_Collection/customer/cart_action.php', {
     method: 'POST',
     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
     body: `action=add&product_id=${productId}&qty=${qty}`
@@ -769,58 +827,46 @@ function addToCart(productId, name, price) {
   .then(r => r.json())
   .then(data => {
     if (data.success) {
-      showToast('✅ ' + name + ' added to cart!', 'success');
+      showToast('✦ ' + name + ' added to cart', 'success');
       const badge = document.querySelector('.cart-badge');
-      if (badge) { badge.textContent = data.cart_count; }
+      if (badge) badge.textContent = data.cart_count;
     } else {
-      showToast('❌ ' + (data.message || 'Failed to add'), 'error');
+      showToast('✕ ' + (data.message || 'Failed to add'), 'error');
     }
   })
-  .catch(() => showToast('❌ Network error', 'error'));
+  .catch(() => showToast('✕ Network error', 'error'));
 }
-function showToast(msg, type='') {
-  const container = document.getElementById('toast-container');
-  const toast = document.createElement('div');
-  toast.className = 'toast ' + type;
-  toast.textContent = msg;
-  container.appendChild(toast);
-  setTimeout(() => toast.remove(), 3500);
+function showToast(msg, type = '') {
+  const t = document.createElement('div');
+  t.className = 'toast ' + type;
+  t.textContent = msg;
+  document.getElementById('toast-container').appendChild(t);
+  setTimeout(() => {
+    t.style.transition = 'opacity .3s, transform .3s';
+    t.style.opacity = '0'; t.style.transform = 'translateX(14px)';
+    setTimeout(() => t.remove(), 320);
+  }, 3200);
 }
-
-// ── PAGE TRANSITION ──
 const transition = document.getElementById('pageTransition');
-
-function triggerTransition(url) {
-  transition.classList.add('active');
-  setTimeout(() => { window.location.href = url; }, 700);
-}
-
-// Locked MEMBER EXCLUSIVE tab — 1.5s loading transition then instant jump to how-to-join
 document.querySelectorAll('a.filter-tab.locked-tab').forEach(link => {
-  link.addEventListener('click', function(e) {
+  link.addEventListener('click', e => {
     e.preventDefault();
     transition.classList.add('active');
     setTimeout(() => {
       transition.classList.remove('active');
-      const target = document.getElementById('how-to-join');
-      if (target) target.scrollIntoView({ behavior: 'instant', block: 'start' });
-    }, 1300);
+      document.getElementById('how-to-join')?.scrollIntoView({ behavior: 'instant', block: 'start' });
+    }, 1100);
   });
 });
-
-// Ripple on every click
-document.addEventListener('click', function(e) {
-  const ripple = document.createElement('div');
-  const size = 60;
-  ripple.className = 'ripple-effect';
-  ripple.style.cssText = `width:${size}px;height:${size}px;left:${e.clientX - size/2}px;top:${e.clientY - size/2}px;`;
-  document.body.appendChild(ripple);
-  setTimeout(() => ripple.remove(), 600);
+document.addEventListener('click', e => {
+  const r = document.createElement('div');
+  const s = 60;
+  r.className = 'ripple-effect';
+  r.style.cssText = `width:${s}px;height:${s}px;left:${e.clientX-s/2}px;top:${e.clientY-s/2}px`;
+  document.body.appendChild(r);
+  setTimeout(() => r.remove(), 620);
 });
-
-// Remove transition on page load
 window.addEventListener('pageshow', () => transition.classList.remove('active'));
 </script>
-
 </body>
 </html>
