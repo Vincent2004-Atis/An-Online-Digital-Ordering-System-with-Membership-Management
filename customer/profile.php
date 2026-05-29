@@ -117,247 +117,388 @@ $user=$stmt->get_result()->fetch_assoc(); $stmt->close();
 $initials = strtoupper(substr($user['name'] ?? 'U', 0, 1));
 $hasPhoto  = !empty($user['profile_photo']) && file_exists('../' . $user['profile_photo']);
 ?>
-<!DOCTYPE html><html lang="en"><head>
-<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
 <title>My Profile — Marguax Collections</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="../css/style.css">
 <style>
-html, body {
-  background: linear-gradient(to bottom right, #0e0507 0%, #1a0a0e 30%, #2a0d14 60%, #3d1020 100%) !important;
+/* ── HARD RESET — beats style.css ── */
+html { background: #1a0609 !important; }
+body {
+  background: #1a0609 !important;
+  background-image: none !important;
   color: #f0e6da !important;
   font-family: 'Jost', sans-serif !important;
   min-height: 100vh !important;
   margin: 0 !important;
+  padding: 0 !important;
+}
+body * { box-sizing: border-box; }
+
+/* kill any pink/light section backgrounds from style.css */
+section, .section, main, .main,
+.hero, .page-hero-wrap, .banner, .header-banner,
+[class*="hero"], [class*="banner"], [class*="header"] {
+  background: transparent !important;
+  background-image: none !important;
+  background-color: transparent !important;
 }
 
-.container { max-width: 820px; margin: auto; padding: 28px 24px; }
-
-/* HERO */
+/* ── HERO ── */
 .page-hero {
-  background: transparent !important;
-  border-bottom: 1px solid rgba(196,80,100,.15) !important;
-  padding: 56px 24px 48px !important;
+  background: #1a0609 !important;
+  background-image: none !important;
+  border-bottom: 1px solid rgba(196,80,100,.2) !important;
+  padding: 60px 24px 48px !important;
   text-align: center !important;
   position: relative !important;
+  overflow: hidden !important;
 }
 .page-hero::before {
-  content: ''; position: absolute; inset: 0;
-  background: radial-gradient(ellipse 80% 70% at 50% -10%, rgba(196,80,100,.13) 0%, transparent 70%);
+  content: '';
+  position: absolute; inset: 0;
+  background: radial-gradient(ellipse 70% 55% at 50% 0%, rgba(196,80,100,.14) 0%, transparent 68%) !important;
   pointer-events: none;
 }
 .hero-eyebrow {
-  display: inline-flex; align-items: center; gap: 8px;
-  font-size: .68rem; font-weight: 600; letter-spacing: .28em; text-transform: uppercase;
-  color: #c45064; padding: 6px 20px;
-  border: 1px solid rgba(196,80,100,.3); border-radius: 40px;
-  margin-bottom: 20px; background: rgba(196,80,100,.06);
-  animation: heroIn .7s cubic-bezier(.16,1,.3,1) both;
+  display: inline-block !important;
+  font-size: .65rem !important; font-weight: 600 !important;
+  letter-spacing: .28em !important; text-transform: uppercase !important;
+  color: #c45064 !important; padding: 5px 20px !important;
+  border: 1px solid rgba(196,80,100,.35) !important; border-radius: 40px !important;
+  margin-bottom: 18px !important; background: rgba(196,80,100,.07) !important;
+  position: relative !important;
+  -webkit-text-fill-color: #c45064 !important;
 }
-.hero-name {
-  font-family: 'Playfair Display', serif;
-  font-size: clamp(1.6rem, 4vw, 2.6rem);
-  font-weight: 400; color: #f0e6da; margin: 12px 0 0;
-  animation: heroIn .8s .1s cubic-bezier(.16,1,.3,1) both;
+.page-hero h1 {
+  font-family: 'Playfair Display', serif !important;
+  font-size: clamp(2rem, 4vw, 3rem) !important;
+  font-weight: 400 !important; color: #f0e6da !important;
+  line-height: 1.1 !important; margin: 8px 0 6px !important;
+  position: relative !important;
+  background: transparent !important;
+  -webkit-text-fill-color: #f0e6da !important;
+}
+.page-hero p {
+  color: #7a6058 !important; font-size: .9rem !important;
+  font-weight: 300 !important; position: relative !important;
+  background: transparent !important;
+  -webkit-text-fill-color: #7a6058 !important;
+  margin: 0 !important;
 }
 .hero-divider {
-  width: 56px; height: 1px;
-  background: linear-gradient(90deg, transparent, #c45064, transparent);
-  margin: 18px auto 0;
+  width: 48px !important; height: 2px !important;
+  background: #c45064 !important;
+  margin: 16px auto 0 !important; opacity: .65 !important;
+  border: none !important;
 }
 
-/* AVATAR */
+/* ── AVATAR ── */
+.avatar-wrap {
+  position: relative !important;
+  display: inline-block !important;
+  margin-bottom: 18px !important;
+}
 .avatar-ring {
-  width: 100px; height: 100px; border-radius: 50%; cursor: pointer;
-  position: relative; overflow: hidden;
-  border: 2px solid rgba(196,80,100,.35);
-  box-shadow: 0 6px 28px rgba(0,0,0,.5);
-  transition: transform .2s, box-shadow .2s;
-  display: inline-block;
-  animation: heroIn .8s cubic-bezier(.16,1,.3,1) both;
+  width: 108px !important; height: 108px !important;
+  border-radius: 50% !important; cursor: pointer !important;
+  position: relative !important; overflow: hidden !important;
+  border: 2px solid rgba(196,80,100,.4) !important;
+  box-shadow: 0 6px 28px rgba(0,0,0,.5), 0 0 0 4px rgba(196,80,100,.08) !important;
+  transition: transform .2s, box-shadow .2s !important;
+  display: block !important;
 }
-.avatar-ring:hover { transform: scale(1.06); box-shadow: 0 8px 32px rgba(196,80,100,.35); }
+.avatar-ring:hover {
+  transform: scale(1.05) !important;
+  box-shadow: 0 8px 32px rgba(196,80,100,.35), 0 0 0 4px rgba(196,80,100,.15) !important;
+}
 .avatar-overlay {
-  position: absolute; inset: 0;
-  background: rgba(0,0,0,.5);
-  display: flex; align-items: center; justify-content: center;
-  opacity: 0; transition: opacity .2s; font-size: 1.5rem;
+  position: absolute !important; inset: 0 !important;
+  background: rgba(0,0,0,.52) !important;
+  display: flex !important; align-items: center !important; justify-content: center !important;
+  opacity: 0 !important; transition: opacity .2s !important; font-size: 1.5rem !important;
 }
-.avatar-ring:hover .avatar-overlay { opacity: 1; }
+.avatar-ring:hover .avatar-overlay { opacity: 1 !important; }
 .remove-dot {
-  position: absolute; bottom: 2px; right: 2px;
-  width: 24px; height: 24px; border-radius: 50%;
-  background: #c45064; border: 2px solid #0e0507;
-  color: #fff; font-size: .6rem; font-weight: 800;
-  display: flex; align-items: center; justify-content: center;
-  cursor: pointer; transition: background .2s; z-index: 10;
+  position: absolute !important; bottom: 3px !important; right: 3px !important;
+  width: 26px !important; height: 26px !important; border-radius: 50% !important;
+  background: #c45064 !important; border: 2px solid #1a0609 !important;
+  color: #fff !important; font-size: .6rem !important; font-weight: 800 !important;
+  display: flex !important; align-items: center !important; justify-content: center !important;
+  cursor: pointer !important; transition: background .2s !important; z-index: 10 !important;
+  line-height: 1 !important;
 }
-.remove-dot:hover { background: #a83d53; }
+.remove-dot:hover { background: #a83d53 !important; }
 
-/* CARD */
-.card {
-  background: rgba(42,13,20,.7) !important;
-  border: 1px solid rgba(196,80,100,.14) !important;
-  border-radius: 16px !important;
+/* ── PAGE WRAP ── */
+.page-wrap {
+  max-width: 820px !important;
+  margin: 0 auto !important;
+  padding: 36px 24px 80px !important;
+  background: transparent !important;
+}
+
+/* ── CARD ── */
+.mg-card {
+  background: #2e0c18 !important;
+  border: 1px solid rgba(196,80,100,.22) !important;
+  border-radius: 14px !important;
   overflow: hidden !important;
   box-shadow: none !important;
   margin-bottom: 20px !important;
-  animation: fadeUp .55s cubic-bezier(.16,1,.3,1) both;
 }
-.card:nth-child(2) { animation-delay: .08s; }
-.card:nth-child(3) { animation-delay: .14s; }
-.card:nth-child(4) { animation-delay: .20s; }
-.card-header {
-  padding: 18px 22px;
-  border-bottom: 1px solid rgba(196,80,100,.12);
-  display: flex; justify-content: space-between; align-items: center;
-  background: rgba(14,5,7,.3);
+.mg-card-head {
+  background: #1e0810 !important;
+  padding: 15px 20px !important;
+  border-bottom: 1px solid rgba(196,80,100,.16) !important;
+  display: flex !important; align-items: center !important;
+  justify-content: space-between !important;
 }
-.card-header-title {
-  font-family: 'Playfair Display', serif;
-  font-size: 1.05rem; font-weight: 400; color: #f0e6da;
+.mg-card-head-title {
+  font-family: 'Playfair Display', serif !important;
+  font-size: 1.05rem !important; font-weight: 400 !important;
+  color: #f0e6da !important;
+  background: transparent !important;
+  -webkit-text-fill-color: #f0e6da !important;
 }
-.card-body { padding: 22px; }
+.mg-pill {
+  background: rgba(196,80,100,.15) !important;
+  color: #c45064 !important;
+  border: 1px solid rgba(196,80,100,.3) !important;
+  border-radius: 20px !important; padding: 4px 14px !important;
+  font-size: .65rem !important; font-weight: 600 !important;
+  letter-spacing: .1em !important;
+  -webkit-text-fill-color: #c45064 !important;
+}
+.mg-card-body {
+  padding: 22px !important;
+  background: transparent !important;
+}
 
-/* FORMS */
-.form-group { margin-bottom: 18px; }
+/* ── BADGES ── */
+.badge-member {
+  background: rgba(196,80,100,.15) !important; color: #e8a0a8 !important;
+  border: 1px solid rgba(196,80,100,.4) !important;
+  padding: 4px 14px !important; border-radius: 20px !important;
+  font-size: .65rem !important; font-weight: 600 !important;
+  letter-spacing: .1em !important; text-transform: uppercase !important;
+  -webkit-text-fill-color: #e8a0a8 !important;
+}
+.badge-non {
+  background: rgba(90,74,66,.25) !important; color: #7a6058 !important;
+  border: 1px solid rgba(90,74,66,.35) !important;
+  padding: 4px 14px !important; border-radius: 20px !important;
+  font-size: .65rem !important; font-weight: 600 !important;
+  letter-spacing: .1em !important; text-transform: uppercase !important;
+  -webkit-text-fill-color: #7a6058 !important;
+}
+
+/* ── ALERTS ── */
+.alert {
+  padding: 13px 16px !important; border-radius: 10px !important;
+  margin-bottom: 18px !important; font-size: .875rem !important;
+  background: transparent !important;
+}
+.alert-success {
+  background: rgba(100,196,130,.08) !important;
+  border: 1px solid rgba(100,196,130,.25) !important;
+  color: #6dbf8a !important;
+  -webkit-text-fill-color: #6dbf8a !important;
+}
+.alert-error {
+  background: rgba(196,80,100,.08) !important;
+  border: 1px solid rgba(196,80,100,.25) !important;
+  color: #e8a0a8 !important;
+  -webkit-text-fill-color: #e8a0a8 !important;
+}
+
+/* ── FORMS ── */
+.form-group { margin-bottom: 18px !important; }
 .form-label {
-  display: block; font-size: .65rem; font-weight: 600;
-  color: #ffffff; margin-bottom: 7px;
-  text-transform: uppercase; letter-spacing: .1em;
+  display: block !important; font-size: .65rem !important; font-weight: 600 !important;
+  color: #7a6058 !important; margin-bottom: 7px !important;
+  text-transform: uppercase !important; letter-spacing: .1em !important;
+  -webkit-text-fill-color: #7a6058 !important;
 }
 .form-control {
-  width: 100%; padding: 11px 14px;
-  background: rgba(255,255,255,.04);
-  border: 1px solid rgba(196,80,100,.18);
-  border-radius: 10px; font-size: .9rem;
-  color: #f0e6da; outline: none;
-  transition: border-color .2s, box-shadow .2s;
-  font-family: 'Jost', sans-serif; box-sizing: border-box;
+  width: 100% !important; padding: 11px 14px !important;
+  background: rgba(255,255,255,.04) !important;
+  border: 1px solid rgba(196,80,100,.18) !important;
+  border-radius: 10px !important; font-size: .9rem !important;
+  color: #f0e6da !important; outline: none !important;
+  transition: border-color .2s, box-shadow .2s !important;
+  font-family: 'Jost', sans-serif !important;
+  -webkit-text-fill-color: #f0e6da !important;
 }
-.form-control::placeholder { color: #3a2820; }
-.form-control:focus { border-color: #c45064; box-shadow: 0 0 0 3px rgba(196,80,100,.12); }
-select.form-control option { background: #1a0a0e; color: #f0e6da; }
-.form-row { display: flex; gap: 14px; flex-wrap: wrap; }
-.form-row .form-group { flex: 1; min-width: 200px; }
+.form-control::placeholder { color: #3a2820 !important; }
+.form-control:focus {
+  border-color: #c45064 !important;
+  box-shadow: 0 0 0 3px rgba(196,80,100,.12) !important;
+}
+select.form-control option { background: #1a0609 !important; color: #f0e6da !important; }
+.form-row { display: flex !important; gap: 14px !important; flex-wrap: wrap !important; }
+.form-row .form-group { flex: 1 !important; min-width: 200px !important; }
 
-/* BADGES */
-.badge-member { background: rgba(196,80,100,.15); color: #e8a0a8; border: 1px solid rgba(196,80,100,.4); padding: 5px 14px; border-radius: 20px; font-size: .65rem; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; }
-.badge-non    { background: rgba(90,74,66,.25); color: #7a6058; border: 1px solid rgba(90,74,66,.35); padding: 5px 14px; border-radius: 20px; font-size: .65rem; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; }
-
-/* ALERTS */
-.alert { padding: 13px 16px; border-radius: 10px; margin-bottom: 18px; font-size: .875rem; }
-.alert-success { background: rgba(100,196,130,.08); border: 1px solid rgba(100,196,130,.25); color: #6dbf8a; }
-.alert-error   { background: rgba(196,80,100,.08); border: 1px solid rgba(196,80,100,.25); color: #e8a0a8; }
-
-/* PAYMENT ACCOUNTS */
+/* ── PAYMENT ACCOUNTS ── */
 .acc-item {
-  display: flex; align-items: center; gap: 14px;
-  padding: 14px 16px;
-  background: rgba(14,5,7,.3);
-  border: 1px solid rgba(196,80,100,.1);
-  border-radius: 12px; margin-bottom: 10px;
-  transition: border-color .2s;
+  display: flex !important; align-items: center !important; gap: 14px !important;
+  padding: 14px 16px !important;
+  background: rgba(14,5,7,.4) !important;
+  border: 1px solid rgba(196,80,100,.12) !important;
+  border-radius: 12px !important; margin-bottom: 10px !important;
+  transition: border-color .2s !important;
 }
-.acc-item:hover { border-color: rgba(196,80,100,.25); }
-.acc-icon { font-size: 1.4rem; width: 40px; text-align: center; flex-shrink: 0; }
-.acc-name { font-weight: 500; color: #f0e6da; font-size: .9rem; margin-bottom: 3px; }
-.acc-detail { font-size: .78rem; color: #5a4a42; }
-.badge-default { background: rgba(196,80,100,.12); color: #c45064; border: 1px solid rgba(196,80,100,.3); padding: 3px 12px; border-radius: 20px; font-size: .65rem; font-weight: 600; letter-spacing: .08em; }
-.hr-divider { border: none; border-top: 1px solid rgba(196,80,100,.12); margin: 22px 0; }
+.acc-item:hover { border-color: rgba(196,80,100,.28) !important; }
+.acc-icon { font-size: 1.4rem !important; width: 40px !important; text-align: center !important; flex-shrink: 0 !important; }
+.acc-name {
+  font-weight: 500 !important; color: #f0e6da !important;
+  font-size: .9rem !important; margin-bottom: 3px !important;
+  -webkit-text-fill-color: #f0e6da !important;
+}
+.acc-detail {
+  font-size: .78rem !important; color: #5a4a42 !important;
+  -webkit-text-fill-color: #5a4a42 !important;
+}
+.badge-default {
+  background: rgba(196,80,100,.12) !important; color: #c45064 !important;
+  border: 1px solid rgba(196,80,100,.3) !important;
+  padding: 3px 12px !important; border-radius: 20px !important;
+  font-size: .65rem !important; font-weight: 600 !important;
+  letter-spacing: .08em !important;
+  -webkit-text-fill-color: #c45064 !important;
+}
+.hr-divider {
+  border: none !important;
+  border-top: 1px solid rgba(196,80,100,.12) !important;
+  margin: 22px 0 !important;
+}
 
-/* BUTTONS */
+/* ── BUTTONS ── */
 .btn-primary {
-  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
-  background: #c45064; color: #fff; border: none;
-  border-radius: 10px; padding: 12px 28px;
-  font-family: 'Jost', sans-serif; font-size: .72rem;
-  font-weight: 600; letter-spacing: .14em; text-transform: uppercase;
-  cursor: pointer; text-decoration: none;
-  transition: background .25s, transform .2s, box-shadow .25s;
+  display: inline-flex !important; align-items: center !important;
+  justify-content: center !important; gap: 6px !important;
+  background: #c45064 !important; color: #fff !important;
+  border: none !important; border-radius: 10px !important;
+  padding: 12px 28px !important;
+  font-family: 'Jost', sans-serif !important;
+  font-size: .7rem !important; font-weight: 600 !important;
+  letter-spacing: .16em !important; text-transform: uppercase !important;
+  cursor: pointer !important; text-decoration: none !important;
+  transition: background .25s, transform .2s, box-shadow .25s !important;
+  box-shadow: 0 4px 18px rgba(196,80,100,.3) !important;
+  -webkit-text-fill-color: #fff !important;
 }
-.btn-primary:hover { background: #a83d53; transform: translateY(-2px); box-shadow: 0 10px 24px rgba(196,80,100,.35); }
+.btn-primary:hover {
+  background: #a83d53 !important;
+  transform: translateY(-2px) !important;
+  box-shadow: 0 10px 24px rgba(196,80,100,.35) !important;
+}
 .btn-danger {
-  background: transparent; color: #7a6058; border: 1px solid rgba(196,80,100,.15);
-  border-radius: 8px; padding: 7px 16px;
-  font-family: 'Jost', sans-serif; font-size: .68rem;
-  font-weight: 500; letter-spacing: .1em; text-transform: uppercase;
-  cursor: pointer; transition: all .2s;
+  background: transparent !important; color: #7a6058 !important;
+  border: 1px solid rgba(196,80,100,.15) !important;
+  border-radius: 8px !important; padding: 7px 16px !important;
+  font-family: 'Jost', sans-serif !important; font-size: .68rem !important;
+  font-weight: 500 !important; letter-spacing: .1em !important;
+  text-transform: uppercase !important; cursor: pointer !important;
+  transition: all .2s !important;
+  -webkit-text-fill-color: #7a6058 !important;
 }
-.btn-danger:hover { background: rgba(196,80,100,.1); color: #e8a0a8; border-color: rgba(196,80,100,.3); }
+.btn-danger:hover {
+  background: rgba(196,80,100,.1) !important;
+  color: #e8a0a8 !important;
+  border-color: rgba(196,80,100,.3) !important;
+  -webkit-text-fill-color: #e8a0a8 !important;
+}
 
-@keyframes heroIn { from { opacity:0; transform:translateY(18px); } to { opacity:1; transform:translateY(0); } }
-@keyframes fadeUp { from { opacity:0; transform:translateY(16px); } to { opacity:1; transform:translateY(0); } }
+/* ── SECTION LABEL ── */
+.section-label {
+  font-size: .72rem !important; letter-spacing: .16em !important;
+  text-transform: uppercase !important; color: #5a4048 !important;
+  margin-bottom: 18px !important; display: block !important;
+  -webkit-text-fill-color: #5a4048 !important;
+}
 
-@media(max-width:600px) {
-  .form-row { flex-direction: column; gap: 0; }
+@media(max-width: 600px) {
+  .form-row { flex-direction: column !important; gap: 0 !important; }
 }
 </style>
-</head><body>
+</head>
+<body>
 <?php include '../includes/navbar.php'; ?>
 
 <!-- HERO -->
 <div class="page-hero">
   <div class="hero-eyebrow">Marguax Collections</div>
 
-  <div style="position:relative;display:inline-block;margin-bottom:14px;">
-    <form method="POST" enctype="multipart/form-data" id="photoForm">
-      <?= csrf_field() ?>
-      <input type="hidden" name="action" value="upload_photo">
-      <input type="file" name="profile_photo" id="photoFileInput"
-             accept="image/jpeg,image/png,image/webp"
-             onchange="document.getElementById('photoForm').submit()" style="display:none;">
+  <!-- AVATAR — centered -->
+  <div style="display:flex;justify-content:center;margin-bottom:14px;position:relative;z-index:1;">
+    <div class="avatar-wrap">
+      <form method="POST" enctype="multipart/form-data" id="photoForm">
+        <?= csrf_field() ?>
+        <input type="hidden" name="action" value="upload_photo">
+        <input type="file" name="profile_photo" id="photoFileInput"
+               accept="image/jpeg,image/png,image/webp"
+               onchange="document.getElementById('photoForm').submit()" style="display:none;">
+        <div class="avatar-ring" onclick="document.getElementById('photoFileInput').click()" title="Click to change photo">
+          <?php if ($hasPhoto): ?>
+            <img src="/Marguax_Collection/<?= htmlspecialchars($user['profile_photo']) ?>"
+                 alt="Profile" style="width:100%;height:100%;object-fit:cover;display:block;">
+          <?php else: ?>
+            <div style="width:100%;height:100%;
+                        background:linear-gradient(135deg,#3d1020,#c45064);
+                        display:flex;align-items:center;justify-content:center;
+                        font-family:'Playfair Display',serif;font-size:2.6rem;font-weight:400;color:#f0e6da;">
+              <?= $initials ?>
+            </div>
+          <?php endif; ?>
+          <div class="avatar-overlay">📷</div>
+        </div>
+      </form>
 
-      <div class="avatar-ring" onclick="document.getElementById('photoFileInput').click()" title="Click to change photo">
-        <?php if ($hasPhoto): ?>
-          <img src="/Marguax_Collection/<?= htmlspecialchars($user['profile_photo']) ?>"
-               alt="Profile" style="width:100%;height:100%;object-fit:cover;display:block;">
-        <?php else: ?>
-          <div style="width:100%;height:100%;
-                      background:linear-gradient(135deg,#3d1020,#c45064);
-                      display:flex;align-items:center;justify-content:center;
-                      font-family:'Playfair Display',serif;font-size:2.4rem;font-weight:400;color:#f0e6da;">
-            <?= $initials ?>
-          </div>
-        <?php endif; ?>
-        <div class="avatar-overlay">📷</div>
-      </div>
-    </form>
-
-    <?php if ($hasPhoto): ?>
-    <form method="POST" style="margin:0;" onsubmit="return confirm('Remove your profile photo?')">
-      <?= csrf_field() ?>
-      <input type="hidden" name="action" value="remove_photo">
-      <button type="submit" class="remove-dot" title="Remove photo">✕</button>
-    </form>
-    <?php endif; ?>
+      <?php if ($hasPhoto): ?>
+      <form method="POST" style="margin:0;" onsubmit="return confirm('Remove your profile photo?')">
+        <?= csrf_field() ?>
+        <input type="hidden" name="action" value="remove_photo">
+        <button type="submit" class="remove-dot" title="Remove photo">✕</button>
+      </form>
+      <?php endif; ?>
+    </div>
   </div>
 
-  <div class="hero-name"><?= e($user['name']) ?></div>
+  <h1><?= e($user['name']) ?></h1>
+  <p>Manage your account and preferences</p>
   <div class="hero-divider"></div>
 </div>
 
-<div class="container" style="margin-top:32px">
-  <?php if ($msg): ?><div class="alert alert-success"><?= e($msg) ?></div><?php endif; ?>
+<!-- CONTENT -->
+<div class="page-wrap">
+
+  <?php if ($msg): ?>
+    <div class="alert alert-success"><?= e($msg) ?></div>
+  <?php endif; ?>
   <?php if (!empty($errors)): ?>
-  <div class="alert alert-error">
-    <ul style="margin:0;padding-left:16px">
-      <?php foreach($errors as $err): ?><li><?= e($err) ?></li><?php endforeach; ?>
-    </ul>
-  </div>
+    <div class="alert alert-error">
+      <ul style="margin:0;padding-left:16px">
+        <?php foreach($errors as $err): ?><li><?= e($err) ?></li><?php endforeach; ?>
+      </ul>
+    </div>
   <?php endif; ?>
 
   <!-- PERSONAL INFO -->
-  <div class="card">
-    <div class="card-header">
-      <span class="card-header-title">Personal Information</span>
+  <div class="mg-card">
+    <div class="mg-card-head">
+      <span class="mg-card-head-title">Personal Information</span>
       <span class="<?= $user['member_status']==='member'?'badge-member':'badge-non' ?>">
         <?= $user['member_status']==='member'?'✦ Member':'Non-Member' ?>
       </span>
     </div>
-    <div class="card-body">
+    <div class="mg-card-body">
       <form method="POST">
         <?= csrf_field() ?>
         <input type="hidden" name="action" value="update_profile">
@@ -387,11 +528,11 @@ select.form-control option { background: #1a0a0e; color: #f0e6da; }
   </div>
 
   <!-- CHANGE PASSWORD -->
-  <div class="card">
-    <div class="card-header">
-      <span class="card-header-title">Change Password</span>
+  <div class="mg-card">
+    <div class="mg-card-head">
+      <span class="mg-card-head-title">Change Password</span>
     </div>
-    <div class="card-body">
+    <div class="mg-card-body">
       <form method="POST">
         <?= csrf_field() ?>
         <input type="hidden" name="action" value="change_password">
@@ -415,23 +556,26 @@ select.form-control option { background: #1a0a0e; color: #f0e6da; }
   </div>
 
   <!-- PAYMENT ACCOUNTS -->
-  <div class="card">
-    <div class="card-header">
-      <span class="card-header-title">Payment Accounts</span>
+  <div class="mg-card">
+    <div class="mg-card-head">
+      <span class="mg-card-head-title">Payment Accounts</span>
       <?php if (!empty($accounts)): ?>
-      <span style="background:rgba(196,80,100,.12);color:#c45064;padding:4px 14px;border-radius:20px;font-size:.65rem;font-weight:600;letter-spacing:.1em;border:1px solid rgba(196,80,100,.25)"><?= count($accounts) ?> saved</span>
+        <span class="mg-pill"><?= count($accounts) ?> saved</span>
       <?php endif; ?>
     </div>
-    <div class="card-body">
+    <div class="mg-card-body">
       <?php if (empty($accounts)): ?>
-        <p style="color:#5a4a42;font-size:.875rem;font-weight:300;margin-bottom:22px">No payment accounts saved yet.</p>
+        <p style="color:#5a4a42;font-size:.875rem;font-weight:300;margin-bottom:22px;-webkit-text-fill-color:#5a4a42;">No payment accounts saved yet.</p>
       <?php else: ?>
         <?php foreach ($accounts as $acc): ?>
         <div class="acc-item">
-          <span class="acc-icon"><?= $acc['account_type']==='gcash'?'📱':'🏦' ?></span>
+          <span class="acc-icon"><?= $acc['account_type']==='gcash' ? '📱' : '🏦' ?></span>
           <div style="flex:1">
             <div class="acc-name"><?= e($acc['account_name']) ?></div>
-            <div class="acc-detail"><?= $acc['account_type']==='bank_transfer'&&$acc['bank_name']?e($acc['bank_name']).' — ':'' ?><?= e($acc['account_number']) ?></div>
+            <div class="acc-detail">
+              <?= $acc['account_type']==='bank_transfer' && $acc['bank_name'] ? e($acc['bank_name']).' — ' : '' ?>
+              <?= e($acc['account_number']) ?>
+            </div>
           </div>
           <?php if($acc['is_default']): ?><span class="badge-default">Default</span><?php endif; ?>
           <form method="POST" style="margin:0">
@@ -445,7 +589,7 @@ select.form-control option { background: #1a0a0e; color: #f0e6da; }
       <?php endif; ?>
 
       <hr class="hr-divider">
-      <p style="font-size:.72rem;letter-spacing:.16em;text-transform:uppercase;color:#5a4a42;margin-bottom:18px">Add Payment Account</p>
+      <span class="section-label">Add Payment Account</span>
       <form method="POST">
         <?= csrf_field() ?>
         <input type="hidden" name="action" value="add_account">
@@ -465,12 +609,8 @@ select.form-control option { background: #1a0a0e; color: #f0e6da; }
             <label class="form-label">Account Number</label>
             <input type="text" name="account_number" class="form-control" placeholder="09XXXXXXXXX" maxlength="50">
           </div>
-          <div class="form-group">
-            <label class="form-label">Bank Name (if Bank Transfer)</label>
-            <input type="text" name="bank_name" class="form-control" placeholder="BDO, BPI, etc." maxlength="100">
-          </div>
         </div>
-        <label style="display:flex;align-items:center;gap:10px;margin-bottom:18px;font-size:.85rem;color:#7a6058;cursor:pointer">
+        <label style="display:flex;align-items:center;gap:10px;margin-bottom:18px;font-size:.85rem;color:#7a6058;cursor:pointer;-webkit-text-fill-color:#7a6058;">
           <input type="checkbox" name="is_default" style="accent-color:#c45064"> Set as default
         </label>
         <button type="submit" class="btn-primary">Add Account</button>
@@ -479,4 +619,5 @@ select.form-control option { background: #1a0a0e; color: #f0e6da; }
   </div>
 
 </div>
-</body></html>
+</body>
+</html>
