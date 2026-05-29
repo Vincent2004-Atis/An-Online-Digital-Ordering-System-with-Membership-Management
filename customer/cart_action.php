@@ -55,7 +55,7 @@ if ($action === 'add') {
         $u = $s->get_result()->fetch_assoc();
         $s->close();
         if (($u['member_status'] ?? '') !== 'member') {
-            echo json_encode(['success' => false, 'message' => 'This product is for members only.']);
+            echo json_encode(['success' => false, 'message' => 'This product is for  .']);
             exit;
         }
     }
